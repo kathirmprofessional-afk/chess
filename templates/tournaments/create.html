@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block title %}Create Tournament{% endblock %}
+
+{% block content %}
+<div class="max-w-xl mx-auto px-6 py-12">
+    <div class="animate-fadeInUp">
+        <div class="text-center mb-8">
+            <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-gold to-amber-600 flex items-center justify-center">
+                <i class="fas fa-trophy text-white text-2xl"></i>
+            </div>
+            <h1 class="text-3xl font-display font-bold text-white">Create Tournament</h1>
+            <p class="text-slate-400 mt-2">Set up a new tournament and invite your friends</p>
+        </div>
+
+        <div class="glass-card p-8">
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Tournament Name</label>
+                    <input type="text" name="name" required class="form-input" placeholder="e.g. Friends Chess Cup">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Max Players</label>
+                    <select name="max_players" class="form-input">
+                        <option value="4">4 Players</option>
+                        <option value="8" selected>8 Players</option>
+                        <option value="16">16 Players</option>
+                        <option value="32">32 Players</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn-primary w-full justify-center text-lg py-3">
+                    <i class="fas fa-bolt"></i> Create Tournament
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

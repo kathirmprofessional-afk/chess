@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+{% block title %}{{ tournament.name }} - Chess Tournament{% endblock %}
+
+{% block extra_css %}
+<style>
+    .bracket-container { overflow-x: auto; padding: 20px 0; }
+    .bracket-round { display: flex; flex-direction: column; justify-content: center; min-width: 260px; gap: 16px; }
+    .bracket-match {
+        background: rgba(17, 24, 39, 0.7); border: 1px solid rgba(99, 102, 241, 0.15);
+        border-radius: 12px; padding: 0; overflow: hidden; transition: all 0.3s;
+        min-width: 240px;
+    }
+    .bracket-match:hover { border-color: rgba(99, 102, 241, 0.4); box-shadow: 0 4px 20px rgba(99, 102, 241, 0.15); }
+    .bracket-match.active { border-color: #22d3ee; box-shadow: 0 0 15px rgba(34, 211, 238, 0.2); }
+    .bracket-match.completed { border-color: rgba(34, 197, 94, 0.3); }
+    .match-player {
+        padding: 10px 14px; display: flex; align-items: center; justify-content: space-between;
+        font-size: 14px; transition: all 0.2s;
+    }
+    .match-player:first-child { border-bottom: 1px solid rgba(99, 102, 241, 0.1); }
+    .match-player.winner { background: rgba(34, 197, 94, 0.1); color: #4ade80; }
+    .match-player.loser { opacity: 0.5; }
+    .connector { width: 40px; display: flex; align-items: center; justify-content: center; position: relative; }
+    .connector::before { content: ''; width: 2px; height: 100%; background: rgba(99, 102, 241, 0.2); position: absolute; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-6 py-10">
+    <div class="animate-fadeInUp">
+        <!-- Header -->
+        <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-8 gap-4">
+            <div>
+                <h1 class="text-3xl font-display font-bold text-white">{{ tournament.name }}</h1>
+                <div class="flex items-center gap-4 mt-2">
+                    <span class="font-mono text-accent-light bg-accent/10 px-3 py-1 rounded-lg text-sm">
+                        <i class="fas fa-key mr-1"></i> {{ tournament.invite_code }}
+                    </span>
+                    {% if tournament.status == 'waiting' %}
+                    <span class="px-3 py-1 rounded-full bg-yellow-500/15 text-yellow-400 text-sm font-semibold">
+                        <i class="fas fa-hourglass-half mr-1"></i> Waiting
+                    </span>
+                    {% elif tournament.status == 'in_progress' %}
+                    <span class="px-3 py-1 rounded-full bg-green-500/15 text-green-400 text-sm font-semibold animate-pulse">
+                        <i class="fas fa-play mr-1"></i> In Progress
+                    </span>
+                    {% else %}
+                    <span class="px-3 py-1 rounded-full bg-blue-500/15 text-blue-400 text-sm font-semibold">
+                        <i class="fas fa-flag-checkered mr-1"></i> Completed
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="flex gap-3">
+                {% if is_host and tournament.status == 'waiting' %}
+                <form method="post" action="{% url 'start_tournament' pk=tournament.pk %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-primary" {% if players.count < 2 %}disabled title="Need at least 2 players"{% endif %}>
+                        <i class="fas fa-play"></i> Start Tournament
+                    </button>
+                </form>
+                {% endif %}
+                {% if tournament.status == 'completed' %}
+                <a href="{% url 'champion' pk=tournament.pk %}" class="btn-primary">
+                    <i class="fas fa-crown"></i> View Champion
+                </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Players List -->
+        <div class="glass-card p-6 mb-8">
+            <h2 class="text-lg font-display font-semibold text-white mb-4">
+                <i class="fas fa-users text-accent mr-2"></i>Players ({{ players.count }}/{{ tournament.max_players }})
+            </h2>
+            <div class="flex flex-wrap gap-3">
+                {% for player in players %}
+                <div class="flex items-center gap-2 px-4 py-2 rounded-xl bg-dark-700 border border-dark-600">
+                    <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-accent to-purple-600 flex items-center justify-center text-xs font-bold text-white">
+                        {{ player.user.username.0|upper }}
+                    </div>
+                    <span class="text-sm text-slate-300 font-medium">{{ player.user.username }}</span>
+                    {% if player.user == tournament.host %}
+                    <span class="text-gold text-xs"><i class="fas fa-crown"></i></span>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+
+            {% if tournament.status == 'waiting' %}
+            <div class="mt-4 p-4 rounded-xl bg-accent/5 border border-accent/10">
+                <p class="text-sm text-slate-400">
+                    <i class="fas fa-share-alt text-accent mr-2"></i>
+                    Share this code with friends: <span class="font-mono text-accent-light font-bold text-lg ml-2">{{ tournament.invite_code }}</span>
+                </p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Tournament Bracket -->
+        {% if rounds %}
+        <div class="glass-card p-6">
+            <h2 class="text-lg font-display font-semibold text-white mb-6">
+                <i class="fas fa-sitemap text-neon mr-2"></i>Tournament Bracket
+            </h2>
+            <div class="bracket-container">
+                <div class="flex gap-2 items-stretch">
+                    {% for round_num, round_matches in rounds.items %}
+                    <div>
+                        <div class="text-center text-xs font-semibold text-slate-500 mb-3 uppercase tracking-wider">
+                            {% if forloop.last and total_rounds > 1 %}Final{% else %}Round {{ round_num }}{% endif %}
+                        </div>
+                        <div class="bracket-round" style="{% if not forloop.first %}padding-top: {{ round_num|add:'-1' }}0px; gap: {{ round_num }}0px;{% endif %}">
+                            {% for match in round_matches %}
+                            <div class="bracket-match {% if match.status == 'active' %}active{% elif match.status == 'completed' %}completed{% endif %}">
+                                <div class="match-player {% if match.winner and match.winner == match.player1 %}winner{% elif match.winner and match.player1 %}loser{% endif %}">
+                                    <span>{% if match.player1 %}{{ match.player1.username }}{% else %}<span class="text-slate-600 italic">TBD</span>{% endif %}</span>
+                                    {% if match.winner == match.player1 %}<i class="fas fa-crown text-gold text-xs"></i>{% endif %}
+                                </div>
+                                <div class="match-player {% if match.winner and match.winner == match.player2 %}winner{% elif match.winner and match.player2 %}loser{% endif %}">
+                                    <span>{% if match.player2 %}{{ match.player2.username }}{% else %}<span class="text-slate-600 italic">TBD</span>{% endif %}</span>
+                                    {% if match.winner == match.player2 %}<i class="fas fa-crown text-gold text-xs"></i>{% endif %}
+                                </div>
+                                {% if match.status == 'active' and is_player %}
+                                <a href="{% url 'match_detail' pk=match.pk %}" class="block text-center py-2 bg-accent/20 text-accent-light text-xs font-semibold hover:bg-accent/30 transition no-underline">
+                                    <i class="fas fa-chess mr-1"></i> Play Now
+                                </a>
+                                {% elif match.status == 'active' %}
+                                <a href="{% url 'match_detail' pk=match.pk %}" class="block text-center py-2 bg-neon/10 text-neon text-xs font-semibold hover:bg-neon/20 transition no-underline">
+                                    <i class="fas fa-eye mr-1"></i> Watch
+                                </a>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% if not forloop.last %}
+                    <div class="connector"></div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

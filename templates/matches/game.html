@@ -1,0 +1,463 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}{{ match.player1.username|default:"TBD" }} vs {{ match.player2.username|default:"TBD" }} — Chess Tournament{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
+<style>
+    /* ── Chess.com-style green board ── */
+    #chessboard .white-1e1d7 { background-color: #EBECD0 !important; color: #779556 !important; }
+    #chessboard .black-3c85d { background-color: #779556 !important; color: #EBECD0 !important; }
+    #chessboard {
+        border-radius: 6px;
+        box-shadow: 0 12px 60px rgba(0,0,0,0.5), 0 0 0 6px #3a3a3a, 0 0 0 8px #2a2a2a;
+    }
+
+    /* ── Page layout ── */
+    .game-wrapper {
+        display: grid;
+        grid-template-columns: 1fr 300px;
+        gap: 20px;
+        max-width: 960px;
+        margin: 0 auto;
+        align-items: start;
+    }
+    @media (max-width: 900px) {
+        .game-wrapper {
+            grid-template-columns: 1fr;
+            max-width: 580px;
+        }
+    }
+
+    /* ── Board sizing ── */
+    .board-column { display: flex; flex-direction: column; gap: 10px; }
+    .board-area { width: 100%; max-width: 580px; margin: 0 auto; }
+
+    /* ── Player bar ── */
+    .player-bar {
+        display: flex; align-items: center; gap: 12px;
+        padding: 10px 16px; border-radius: 10px;
+        background: rgba(17, 24, 39, 0.5);
+        border: 1px solid rgba(255,255,255,0.06);
+        transition: all 0.3s;
+    }
+    .player-bar.active-turn {
+        background: rgba(119, 149, 86, 0.15);
+        border-color: rgba(119, 149, 86, 0.4);
+        box-shadow: 0 0 12px rgba(119, 149, 86, 0.15);
+    }
+    .player-avatar {
+        width: 40px; height: 40px; border-radius: 10px;
+        display: flex; align-items: center; justify-content: center;
+        font-weight: 700; font-size: 16px; font-family: 'Outfit', sans-serif;
+    }
+    .avatar-white { background: linear-gradient(135deg, #f0f0f0, #d4d4d4); color: #333; }
+    .avatar-black { background: linear-gradient(135deg, #555, #333); color: #eee; }
+
+    /* ── Side panel ── */
+    .side-panel {
+        background: rgba(17, 24, 39, 0.5);
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 14px;
+        overflow: hidden;
+        display: flex; flex-direction: column;
+        max-height: 640px;
+    }
+    .panel-header {
+        padding: 14px 18px;
+        background: rgba(119, 149, 86, 0.1);
+        border-bottom: 1px solid rgba(255,255,255,0.06);
+        font-family: 'Outfit', sans-serif;
+        font-weight: 600; font-size: 13px;
+        text-transform: uppercase; letter-spacing: 1px;
+        color: #94a3b8;
+    }
+
+    /* ── Move list ── */
+    .move-list {
+        flex: 1; overflow-y: auto; padding: 8px;
+    }
+    .move-row {
+        display: grid; grid-template-columns: 32px 1fr 1fr;
+        gap: 4px; padding: 0; font-size: 13px;
+        font-family: 'Outfit', monospace;
+    }
+    .move-row:nth-child(odd) { background: rgba(255,255,255,0.02); }
+    .move-num { color: #4a5568; text-align: center; padding: 6px 0; font-size: 11px; }
+    .move-cell {
+        padding: 6px 10px; border-radius: 4px; cursor: default;
+        transition: background 0.15s;
+    }
+    .move-cell:hover { background: rgba(119, 149, 86, 0.15); }
+    .move-cell.white-move { color: #e2e8f0; }
+    .move-cell.black-move { color: #a0aec0; }
+    .move-cell.latest { background: rgba(119, 149, 86, 0.2); color: #fff; }
+
+    /* ── Status bar ── */
+    .status-bar {
+        padding: 14px 18px;
+        text-align: center;
+        font-family: 'Outfit', sans-serif;
+        font-weight: 600; font-size: 15px;
+        border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .status-your-turn { background: rgba(119, 149, 86, 0.15); color: #a3be7b; }
+    .status-waiting { background: rgba(100, 116, 139, 0.1); color: #94a3b8; }
+    .status-check { background: rgba(239, 68, 68, 0.12); color: #f87171; }
+    .status-over { background: rgba(245, 158, 11, 0.12); color: #fbbf24; }
+
+    /* ── Actions ── */
+    .panel-actions {
+        padding: 12px; border-top: 1px solid rgba(255,255,255,0.06);
+        display: flex; gap: 8px;
+    }
+    .btn-resign {
+        flex: 1; padding: 8px 12px; border-radius: 8px;
+        background: rgba(239, 68, 68, 0.1); color: #f87171;
+        border: 1px solid rgba(239, 68, 68, 0.2);
+        font-size: 12px; font-weight: 600; cursor: pointer;
+        transition: all 0.2s; font-family: 'Outfit', sans-serif;
+    }
+    .btn-resign:hover { background: rgba(239, 68, 68, 0.2); }
+    .btn-back {
+        flex: 1; padding: 8px 12px; border-radius: 8px;
+        background: rgba(99, 102, 241, 0.1); color: #818cf8;
+        border: 1px solid rgba(99, 102, 241, 0.2);
+        font-size: 12px; font-weight: 600; cursor: pointer;
+        transition: all 0.2s; font-family: 'Outfit', sans-serif;
+        text-decoration: none; text-align: center;
+    }
+    .btn-back:hover { background: rgba(99, 102, 241, 0.2); }
+
+    /* ── Modal ── */
+    .modal-overlay {
+        position: fixed; inset: 0; background: rgba(0,0,0,0.75);
+        display: none; align-items: center; justify-content: center; z-index: 1000;
+        backdrop-filter: blur(6px);
+    }
+    .modal-overlay.show { display: flex; }
+    .modal-content {
+        background: #14191f; border: 1px solid rgba(119, 149, 86, 0.3);
+        border-radius: 20px; padding: 40px; text-align: center; max-width: 400px;
+        animation: fadeInUp 0.4s ease-out;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+
+    /* ── Highlight ── */
+    .highlight-sq { box-shadow: inset 0 0 0 3px rgba(255, 255, 0, 0.5) !important; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="px-4 py-6">
+    <div class="animate-fadeInUp">
+        <!-- Top bar -->
+        <div class="text-center mb-5">
+            <a href="{% url 'tournament_detail' pk=match.tournament.pk %}" class="text-slate-500 hover:text-slate-300 text-sm transition no-underline">
+                <i class="fas fa-arrow-left mr-1"></i> {{ match.tournament.name }}
+            </a>
+            <h1 class="text-xl font-display font-bold text-white mt-1">Round {{ match.round_number }}{% if is_spectator %} <span class="text-neon text-sm font-normal ml-2"><i class="fas fa-eye"></i> Spectating</span>{% endif %}</h1>
+        </div>
+
+        <div class="game-wrapper">
+            <!-- Board + Players -->
+            <div class="board-column">
+                <!-- Opponent (top) -->
+                <div class="player-bar" id="player-top-bar">
+                    <div class="player-avatar avatar-black">{{ match.player2.username.0|upper|default:"?" }}</div>
+                    <div>
+                        <div class="text-white font-semibold text-sm">{{ match.player2.username|default:"TBD" }}</div>
+                        <div class="text-slate-500 text-xs">Black</div>
+                    </div>
+                </div>
+
+                <!-- Board -->
+                <div class="board-area">
+                    <div id="chessboard" style="width: 100%;"></div>
+                </div>
+
+                <!-- You (bottom) -->
+                <div class="player-bar active-turn" id="player-bottom-bar">
+                    <div class="player-avatar avatar-white">{{ match.player1.username.0|upper|default:"?" }}</div>
+                    <div>
+                        <div class="text-white font-semibold text-sm">{{ match.player1.username|default:"TBD" }}</div>
+                        <div class="text-slate-500 text-xs">White</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Side panel -->
+            <div class="side-panel">
+                <!-- Status -->
+                <div class="status-bar status-waiting" id="status-bar">
+                    <i class="fas fa-spinner fa-spin mr-2"></i> Loading...
+                </div>
+
+                <!-- Moves header -->
+                <div class="panel-header">
+                    <i class="fas fa-list-ol mr-1"></i> Move History
+                </div>
+
+                <!-- Move List -->
+                <div class="move-list" id="move-list">
+                    <p class="text-slate-600 text-xs text-center py-8" id="no-moves-msg">No moves yet. White to play.</p>
+                </div>
+
+                <!-- Actions -->
+                <div class="panel-actions">
+                    <a href="{% url 'tournament_detail' pk=match.tournament.pk %}" class="btn-back">
+                        <i class="fas fa-arrow-left mr-1"></i> Bracket
+                    </a>
+                    {% if is_player and match.status == 'active' %}
+                    <button onclick="resignGame()" class="btn-resign" id="resign-btn">
+                        <i class="fas fa-flag mr-1"></i> Resign
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Game Over Modal -->
+<div class="modal-overlay" id="game-over-modal">
+    <div class="modal-content">
+        <div id="modal-icon" class="text-6xl mb-4"></div>
+        <h2 id="modal-title" class="text-2xl font-display font-bold text-white mb-2"></h2>
+        <p id="modal-message" class="text-slate-400 mb-6"></p>
+        <a href="{% url 'tournament_detail' pk=match.tournament.pk %}" class="btn-primary">
+            <i class="fas fa-arrow-left mr-1"></i> Back to Tournament
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+<script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
+<script>
+(function() {
+    'use strict';
+
+    var MATCH_ID = {{ match.pk }};
+    var CURRENT_USER = "{{ user.username }}";
+    var PLAYER_COLOR = "{{ player_color|default:'' }}";
+    var IS_PLAYER = {% if is_player %}true{% else %}false{% endif %};
+    var MATCH_STATUS = "{{ match.status }}";
+    var CSRF_TOKEN = "{{ csrf_token }}";
+
+    var API_STATE  = "/match/" + MATCH_ID + "/api/state/";
+    var API_MOVE   = "/match/" + MATCH_ID + "/api/move/";
+    var API_RESIGN = "/match/" + MATCH_ID + "/api/resign/";
+
+    var game = new Chess();
+    var board = null;
+    var lastMoveCount = 0;
+    var pollInterval = null;
+    var gameOver = false;
+
+    function initBoard() {
+        board = Chessboard('chessboard', {
+            draggable: IS_PLAYER && MATCH_STATUS === 'active',
+            position: 'start',
+            orientation: PLAYER_COLOR === 'black' ? 'black' : 'white',
+            onDragStart: onDragStart,
+            onDrop: onDrop,
+            onSnapEnd: onSnapEnd,
+            pieceTheme: '/static/img/chesspieces/alpha/{piece}.png',
+        });
+        $(window).on('resize', function() { board.resize(); });
+    }
+
+    function onDragStart(source, piece) {
+        if (gameOver || game.game_over()) return false;
+        if (!IS_PLAYER) return false;
+        if (PLAYER_COLOR === 'white' && piece.search(/^b/) !== -1) return false;
+        if (PLAYER_COLOR === 'black' && piece.search(/^w/) !== -1) return false;
+        if (game.turn() === 'w' && PLAYER_COLOR !== 'white') return false;
+        if (game.turn() === 'b' && PLAYER_COLOR !== 'black') return false;
+        return true;
+    }
+
+    function onDrop(source, target) {
+        var piece = game.get(source);
+        var promo = 'q';
+        var move = game.move({ from: source, to: target, promotion: promo });
+        if (move === null) return 'snapback';
+
+        var moveUci = source + target;
+        if (move.promotion) moveUci += move.promotion;
+
+        updateStatus();
+        sendMove(moveUci);
+    }
+
+    function onSnapEnd() { board.position(game.fen()); }
+
+    function sendMove(moveUci) {
+        $.ajax({
+            url: API_MOVE, method: 'POST',
+            contentType: 'application/json',
+            headers: { 'X-CSRFToken': CSRF_TOKEN },
+            data: JSON.stringify({ move: moveUci }),
+            success: function(data) {
+                if (data.valid) {
+                    game = new Chess(data.fen);
+                    board.position(data.fen);
+                    lastMoveCount++;
+                    updateStatus();
+                    if (data.is_checkmate) {
+                        gameOver = true;
+                        showModal('Checkmate!', data.winner + ' wins!', '<i class="fas fa-crown text-gold"></i>');
+                    } else if (data.is_stalemate || data.is_draw) {
+                        gameOver = true;
+                        showModal('Draw!', 'Game ended in a draw.', '<i class="fas fa-handshake text-yellow-400"></i>');
+                    }
+                } else {
+                    game.undo(); board.position(game.fen());
+                    flashStatus('error', data.message || 'Invalid move');
+                }
+            },
+            error: function(xhr) {
+                game.undo(); board.position(game.fen());
+                var msg = 'Server error'; try { msg = JSON.parse(xhr.responseText).message || msg; } catch(e) {}
+                flashStatus('error', msg);
+            }
+        });
+    }
+
+    function pollGameState() {
+        if (gameOver) return;
+        $.getJSON(API_STATE, function(data) {
+            if (data.move_count > lastMoveCount) {
+                game = new Chess(data.fen);
+                board.position(data.fen);
+                lastMoveCount = data.move_count;
+                rebuildMoveList(data.moves, data.player1, data.player2);
+                updateStatus();
+                if (data.status === 'completed' && data.winner) {
+                    gameOver = true;
+                    showModal('Game Over', data.winner + ' wins!', '<i class="fas fa-crown text-gold"></i>');
+                }
+            }
+        });
+    }
+
+    function loadInitialState() {
+        $.getJSON(API_STATE, function(data) {
+            game = new Chess(data.fen);
+            board.position(data.fen);
+            lastMoveCount = data.move_count;
+            if (data.moves && data.moves.length > 0) rebuildMoveList(data.moves, data.player1, data.player2);
+            if (data.status === 'completed' && data.winner) {
+                gameOver = true;
+                showModal('Game Over', data.winner + ' wins!', '<i class="fas fa-crown text-gold"></i>');
+            }
+            updateStatus();
+            pollInterval = setInterval(pollGameState, 2000);
+        }).fail(function() {
+            setStatus('error', 'Failed to load. Refresh the page.');
+            setTimeout(loadInitialState, 3000);
+        });
+    }
+
+    function updateStatus() {
+        var topBar = $('#player-top-bar');
+        var botBar = $('#player-bottom-bar');
+
+        if (gameOver || game.game_over()) {
+            if (game.in_checkmate()) {
+                var w = game.turn() === 'w' ? 'Black' : 'White';
+                setStatus('over', '<i class="fas fa-crown mr-2"></i> Checkmate! ' + w + ' wins!');
+            } else if (game.in_stalemate() || game.in_draw()) {
+                setStatus('over', '<i class="fas fa-handshake mr-2"></i> Draw!');
+            }
+            return;
+        }
+
+        if (game.in_check()) {
+            var c = game.turn() === 'w' ? 'White' : 'Black';
+            setStatus('check', '<i class="fas fa-exclamation-triangle mr-2"></i> ' + c + ' is in CHECK!');
+        } else {
+            var turn = game.turn() === 'w' ? 'White' : 'Black';
+            var myTurn = (game.turn() === 'w' && PLAYER_COLOR === 'white') || (game.turn() === 'b' && PLAYER_COLOR === 'black');
+            if (myTurn) {
+                setStatus('your-turn', '<i class="fas fa-chess mr-2"></i> Your turn (' + turn + ')');
+            } else {
+                setStatus('waiting', '<i class="fas fa-clock mr-2"></i> Waiting for ' + turn + '...');
+            }
+        }
+
+        if (game.turn() === 'w') {
+            botBar.addClass('active-turn'); topBar.removeClass('active-turn');
+        } else {
+            topBar.addClass('active-turn'); botBar.removeClass('active-turn');
+        }
+    }
+
+    function setStatus(type, html) {
+        var bar = $('#status-bar');
+        bar.attr('class', 'status-bar status-' + type);
+        bar.html(html);
+    }
+
+    function flashStatus(type, msg) {
+        setStatus(type === 'error' ? 'check' : type, '<i class="fas fa-exclamation-circle mr-2"></i> ' + msg);
+        setTimeout(updateStatus, 2500);
+    }
+
+    function rebuildMoveList(moves, p1, p2) {
+        var list = $('#move-list');
+        list.empty();
+        if (!moves || !moves.length) {
+            list.html('<p class="text-slate-600 text-xs text-center py-8">No moves yet. White to play.</p>');
+            return;
+        }
+        for (var i = 0; i < moves.length; i += 2) {
+            var num = Math.floor(i / 2) + 1;
+            var row = $('<div class="move-row"></div>');
+            row.append('<span class="move-num">' + num + '.</span>');
+            var wcell = $('<span class="move-cell white-move"></span>').text(moves[i]);
+            if (i === moves.length - 1) wcell.addClass('latest');
+            row.append(wcell);
+            if (i + 1 < moves.length) {
+                var bcell = $('<span class="move-cell black-move"></span>').text(moves[i + 1]);
+                if (i + 1 === moves.length - 1) bcell.addClass('latest');
+                row.append(bcell);
+            } else {
+                row.append('<span></span>');
+            }
+            list.append(row);
+        }
+        list.scrollTop(list[0].scrollHeight);
+    }
+
+    function showModal(title, message, icon) {
+        $('#modal-title').text(title);
+        $('#modal-message').text(message);
+        $('#modal-icon').html(icon);
+        $('#game-over-modal').addClass('show');
+        if (pollInterval) clearInterval(pollInterval);
+    }
+
+    window.resignGame = function() {
+        if (!confirm('Are you sure you want to resign?')) return;
+        $.ajax({
+            url: API_RESIGN, method: 'POST',
+            headers: { 'X-CSRFToken': CSRF_TOKEN },
+            success: function(data) {
+                gameOver = true;
+                showModal('Resignation', data.winner + ' wins by resignation!', '<i class="fas fa-flag text-red-400"></i>');
+            },
+            error: function() { flashStatus('error', 'Failed to resign.'); }
+        });
+    };
+
+    $(document).ready(function() {
+        initBoard();
+        loadInitialState();
+    });
+})();
+</script>
+{% endblock %}

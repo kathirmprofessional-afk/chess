@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard - Chess Tournament{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-6 py-12">
+    <div class="animate-fadeInUp">
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-10 gap-4">
+            <div>
+                <h1 class="text-4xl font-display font-bold text-white">Dashboard</h1>
+                <p class="text-slate-400 mt-1">Welcome back, <span class="text-accent-light font-semibold">{{ user.username }}</span></p>
+            </div>
+            <div class="flex gap-3">
+                <a href="{% url 'create_tournament' %}" class="btn-primary">
+                    <i class="fas fa-plus"></i> Create Tournament
+                </a>
+            </div>
+        </div>
+
+        <!-- Join Tournament -->
+        <div class="glass-card p-6 mb-10">
+            <h2 class="text-lg font-display font-semibold text-white mb-4"><i class="fas fa-ticket-alt text-neon mr-2"></i>Join a Tournament</h2>
+            <form method="post" action="{% url 'join_tournament' %}" class="flex gap-3">
+                {% csrf_token %}
+                <input type="text" name="invite_code" placeholder="Enter invite code (e.g. CHESS123)" class="form-input flex-1" required style="text-transform:uppercase;">
+                <button type="submit" class="btn-primary whitespace-nowrap">
+                    <i class="fas fa-sign-in-alt"></i> Join
+                </button>
+            </form>
+        </div>
+
+        <!-- My Tournaments -->
+        <div class="mb-10">
+            <h2 class="text-2xl font-display font-bold text-white mb-6"><i class="fas fa-trophy text-gold mr-2"></i>My Tournaments</h2>
+            {% if my_tournaments %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for tournament in my_tournaments %}
+                <a href="{% url 'tournament_detail' pk=tournament.pk %}" class="glass-card p-6 block no-underline group">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-display font-semibold text-white group-hover:text-accent-light transition">{{ tournament.name }}</h3>
+                        {% if tournament.status == 'waiting' %}
+                        <span class="px-3 py-1 rounded-full bg-yellow-500/15 text-yellow-400 text-xs font-semibold">Waiting</span>
+                        {% elif tournament.status == 'in_progress' %}
+                        <span class="px-3 py-1 rounded-full bg-green-500/15 text-green-400 text-xs font-semibold animate-pulse">Live</span>
+                        {% else %}
+                        <span class="px-3 py-1 rounded-full bg-slate-500/15 text-slate-400 text-xs font-semibold">Completed</span>
+                        {% endif %}
+                    </div>
+                    <div class="flex items-center justify-between text-sm text-slate-400">
+                        <span><i class="fas fa-users mr-1"></i> {{ tournament.players.count }}/{{ tournament.max_players }}</span>
+                        <span class="font-mono text-accent-light bg-accent/10 px-2 py-1 rounded text-xs">{{ tournament.invite_code }}</span>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="glass-card p-12 text-center">
+                <i class="fas fa-chess-board text-5xl text-slate-600 mb-4"></i>
+                <p class="text-slate-400">You haven't joined any tournaments yet.</p>
+                <p class="text-slate-500 text-sm mt-1">Create one or enter an invite code above!</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
