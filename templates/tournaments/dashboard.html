@@ -10,24 +10,105 @@
                 <h1 class="text-4xl font-display font-bold text-white">Dashboard</h1>
                 <p class="text-slate-400 mt-1">Welcome back, <span class="text-accent-light font-semibold">{{ user.username }}</span></p>
             </div>
-            <div class="flex gap-3">
+            <div class="flex gap-3 flex-wrap">
+                <a href="{% url 'create_room' %}" class="btn-primary" style="background: linear-gradient(135deg, #10b981, #059669);">
+                    <i class="fas fa-plus"></i> Create Room
+                </a>
                 <a href="{% url 'create_tournament' %}" class="btn-primary">
-                    <i class="fas fa-plus"></i> Create Tournament
+                    <i class="fas fa-trophy"></i> Create Tournament
                 </a>
             </div>
         </div>
 
-        <!-- Join Tournament -->
-        <div class="glass-card p-6 mb-10">
-            <h2 class="text-lg font-display font-semibold text-white mb-4"><i class="fas fa-ticket-alt text-neon mr-2"></i>Join a Tournament</h2>
-            <form method="post" action="{% url 'join_tournament' %}" class="flex gap-3">
-                {% csrf_token %}
-                <input type="text" name="invite_code" placeholder="Enter invite code (e.g. CHESS123)" class="form-input flex-1" required style="text-transform:uppercase;">
-                <button type="submit" class="btn-primary whitespace-nowrap">
-                    <i class="fas fa-sign-in-alt"></i> Join
-                </button>
-            </form>
+        {% if pending_room_invites %}
+        <div class="mb-10">
+            <h2 class="text-2xl font-display font-bold text-white mb-6">
+                <i class="fas fa-envelope-open-text text-accent-light mr-2"></i>Room Invites
+                <span class="ml-2 px-3 py-1 rounded-full bg-accent/20 text-accent-light text-sm font-semibold">{{ pending_room_invites|length }}</span>
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for invite in pending_room_invites %}
+                <div class="glass-card p-6 border border-accent/30">
+                    <div class="flex items-center gap-4 mb-4">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-accent to-purple-600 flex items-center justify-center text-xl font-display font-bold text-white">
+                            {{ invite.invited_by.username.0|upper }}
+                        </div>
+                        <div>
+                            <div class="text-white font-semibold">{{ invite.invited_by.username }}</div>
+                            <div class="text-slate-400 text-sm">Invited you to play</div>
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <form method="post" action="{% url 'accept_room_invite' invite_id=invite.id %}" class="flex-1">
+                            {% csrf_token %}
+                            <button type="submit" class="w-full px-4 py-2 rounded-lg bg-green-500/20 text-green-400 hover:bg-green-500/30 transition text-sm font-semibold cursor-pointer">
+                                Accept
+                            </button>
+                        </form>
+                        <form method="post" action="{% url 'decline_room_invite' invite_id=invite.id %}" class="flex-1">
+                            {% csrf_token %}
+                            <button type="submit" class="w-full px-4 py-2 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 transition text-sm font-semibold cursor-pointer">
+                                Decline
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
         </div>
+        {% endif %}
+
+        <!-- Join Actions -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+            <!-- Join Room -->
+            <div class="glass-card p-6 border border-emerald-500/20">
+                <h2 class="text-lg font-display font-semibold text-white mb-4"><i class="fas fa-chess-board text-emerald-400 mr-2"></i>Join a Room</h2>
+                <form method="post" action="{% url 'join_room' %}" class="flex gap-3">
+                    {% csrf_token %}
+                    <input type="text" name="room_code" placeholder="Enter 6-char room code" class="form-input flex-1" required style="text-transform:uppercase;" maxlength="6">
+                    <button type="submit" class="btn-primary whitespace-nowrap" style="background: linear-gradient(135deg, #10b981, #059669);">
+                        <i class="fas fa-sign-in-alt"></i> Join
+                    </button>
+                </form>
+            </div>
+
+            <!-- Join Tournament -->
+            <div class="glass-card p-6">
+                <h2 class="text-lg font-display font-semibold text-white mb-4"><i class="fas fa-ticket-alt text-neon mr-2"></i>Join a Tournament</h2>
+                <form method="post" action="{% url 'join_tournament' %}" class="flex gap-3">
+                    {% csrf_token %}
+                    <input type="text" name="invite_code" placeholder="Enter invite code (e.g. CHESS123)" class="form-input flex-1" required style="text-transform:uppercase;">
+                    <button type="submit" class="btn-primary whitespace-nowrap">
+                        <i class="fas fa-sign-in-alt"></i> Join
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Active Rooms -->
+        {% if active_rooms %}
+        <div class="mb-10">
+            <h2 class="text-2xl font-display font-bold text-white mb-6"><i class="fas fa-layer-group text-emerald-400 mr-2"></i>My Active Rooms</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for room in active_rooms %}
+                <a href="{% if room.status == 'playing' and room.match %}{% url 'match_detail' pk=room.match.pk %}{% else %}{% url 'room_lobby' room_code=room.room_code %}{% endif %}" class="glass-card p-6 block no-underline group border border-emerald-500/20 hover:border-emerald-500/40">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-display font-semibold text-white group-hover:text-emerald-400 transition">Room {{ room.room_code }}</h3>
+                        {% if room.status == 'waiting' %}
+                        <span class="px-3 py-1 rounded-full bg-yellow-500/15 text-yellow-400 text-xs font-semibold">Waiting</span>
+                        {% elif room.status == 'playing' %}
+                        <span class="px-3 py-1 rounded-full bg-green-500/15 text-green-400 text-xs font-semibold animate-pulse">Live</span>
+                        {% endif %}
+                    </div>
+                    <div class="flex items-center justify-between text-sm text-slate-400">
+                        <span>{{ room.host.username }} vs {% if room.guest %}{{ room.guest.username }}{% else %}Waiting...{% endif %}</span>
+                        <span class="text-xs">{{ room.created_at|timesince }} ago</span>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
 
         <!-- My Tournaments -->
         <div class="mb-10">
@@ -55,9 +136,8 @@
             </div>
             {% else %}
             <div class="glass-card p-12 text-center">
-                <i class="fas fa-chess-board text-5xl text-slate-600 mb-4"></i>
+                <i class="fas fa-trophy text-5xl text-slate-600 mb-4"></i>
                 <p class="text-slate-400">You haven't joined any tournaments yet.</p>
-                <p class="text-slate-500 text-sm mt-1">Create one or enter an invite code above!</p>
             </div>
             {% endif %}
         </div>

@@ -1,0 +1,209 @@
+{% extends 'base.html' %}
+{% block title %}Room {{ room.room_code }} - Chess Tournament{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-6 py-12">
+    <div class="animate-fadeInUp">
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
+            <div>
+                <h1 class="text-3xl font-display font-bold text-white">
+                    <i class="fas fa-chess-board text-accent mr-3"></i>Game Room
+                </h1>
+                <p class="text-slate-400 mt-1">Waiting for players to join...</p>
+            </div>
+            <a href="{% url 'dashboard' %}" class="btn-secondary text-sm">
+                <i class="fas fa-arrow-left"></i> Leave Room
+            </a>
+        </div>
+
+        <!-- Room Code Card -->
+        <div class="glass-card p-8 mb-8 text-center" style="border-color: rgba(99, 102, 241, 0.3);">
+            <p class="text-slate-400 text-sm mb-2 uppercase tracking-widest font-semibold">Room Code</p>
+            <div class="flex items-center justify-center gap-4 mb-4">
+                <span id="roomCode" class="text-5xl font-display font-extrabold tracking-[0.3em] text-transparent bg-clip-text bg-gradient-to-r from-accent-light via-neon to-accent-light animate-pulse-glow px-6 py-3 rounded-2xl border-2 border-accent/30" style="letter-spacing: 0.3em;">
+                    {{ room.room_code }}
+                </span>
+            </div>
+            <button onclick="copyRoomCode()" id="copyBtn" class="btn-secondary text-sm mt-2">
+                <i class="fas fa-copy"></i> Copy Code
+            </button>
+        </div>
+
+        <!-- Players -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <!-- Host -->
+            <div class="glass-card p-6" style="border-color: rgba(34, 197, 94, 0.3);">
+                <div class="flex items-center gap-4">
+                    <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-2xl font-display font-bold text-white shadow-lg shadow-green-500/20">
+                        {{ room.host.username.0|upper }}
+                    </div>
+                    <div>
+                        <div class="text-xs text-green-400 uppercase tracking-wider font-semibold mb-1">
+                            <i class="fas fa-crown mr-1"></i>Host
+                        </div>
+                        <div class="text-xl text-white font-semibold">{{ room.host.username }}</div>
+                        <div class="text-slate-400 text-sm"><i class="fas fa-star text-gold mr-1"></i>{{ room.host.rating }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Guest -->
+            <div class="glass-card p-6" id="guestCard">
+                {% if room.guest %}
+                <div class="flex items-center gap-4">
+                    <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-accent to-purple-600 flex items-center justify-center text-2xl font-display font-bold text-white shadow-lg shadow-accent/20">
+                        {{ room.guest.username.0|upper }}
+                    </div>
+                    <div>
+                        <div class="text-xs text-accent-light uppercase tracking-wider font-semibold mb-1">
+                            <i class="fas fa-user mr-1"></i>Opponent
+                        </div>
+                        <div class="text-xl text-white font-semibold">{{ room.guest.username }}</div>
+                        <div class="text-slate-400 text-sm"><i class="fas fa-star text-gold mr-1"></i>{{ room.guest.rating }}</div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="flex flex-col items-center justify-center h-full py-4" id="waitingState">
+                    <div class="w-16 h-16 rounded-2xl border-2 border-dashed border-slate-600 flex items-center justify-center mb-3">
+                        <i class="fas fa-user-plus text-slate-500 text-2xl"></i>
+                    </div>
+                    <p class="text-slate-400 font-semibold">Waiting for opponent...</p>
+                    <div class="flex items-center gap-2 mt-2">
+                        <div class="w-2 h-2 rounded-full bg-accent animate-bounce" style="animation-delay: 0s;"></div>
+                        <div class="w-2 h-2 rounded-full bg-accent animate-bounce" style="animation-delay: 0.15s;"></div>
+                        <div class="w-2 h-2 rounded-full bg-accent animate-bounce" style="animation-delay: 0.3s;"></div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Start Game Button (Host only) -->
+        {% if user == room.host %}
+        <div class="text-center mb-8">
+            <form method="post" action="{% url 'start_room_game' room_code=room.room_code %}" id="startForm">
+                {% csrf_token %}
+                <button type="submit" id="startBtn" class="btn-primary text-lg px-10 py-4 {% if not room.guest %}opacity-50 cursor-not-allowed{% endif %}" {% if not room.guest %}disabled{% endif %}>
+                    <i class="fas fa-play mr-2"></i> Start Game
+                </button>
+            </form>
+            {% if not room.guest %}
+            <p class="text-slate-500 text-sm mt-3">Share the room code or invite a friend to start playing</p>
+            {% endif %}
+        </div>
+        {% else %}
+        {% if room.guest == user %}
+        <div class="text-center mb-8">
+            <div class="glass-card inline-block px-8 py-4">
+                <i class="fas fa-hourglass-half text-accent-light text-xl mr-2 animate-pulse"></i>
+                <span class="text-white font-semibold">Waiting for host to start the game...</span>
+            </div>
+        </div>
+        {% endif %}
+        {% endif %}
+
+        <!-- Invite Friends (Host only) -->
+        {% if user == room.host and friends %}
+        <div class="glass-card p-6 mb-8">
+            <h2 class="text-lg font-display font-semibold text-white mb-4">
+                <i class="fas fa-paper-plane text-neon mr-2"></i>Invite Friends
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {% for friend in friends %}
+                <div class="flex items-center justify-between p-3 rounded-xl hover:bg-white/5 transition">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-accent to-purple-600 flex items-center justify-center text-sm font-display font-bold text-white">
+                            {{ friend.username.0|upper }}
+                        </div>
+                        <div>
+                            <div class="text-white font-semibold text-sm">{{ friend.username }}</div>
+                            <div class="text-slate-400 text-xs"><i class="fas fa-star text-gold mr-1"></i>{{ friend.rating }}</div>
+                        </div>
+                    </div>
+                    {% if friend.id in invited_ids %}
+                    <span class="px-3 py-1 rounded-full bg-accent/15 text-accent-light text-xs font-semibold">
+                        <i class="fas fa-check mr-1"></i>Invited
+                    </span>
+                    {% else %}
+                    <button onclick="inviteFriend('{{ room.room_code }}', {{ friend.id }}, this)" 
+                            class="px-4 py-2 rounded-lg bg-accent/20 text-accent-light border border-accent/30 hover:bg-accent/30 transition font-semibold text-xs cursor-pointer">
+                        <i class="fas fa-paper-plane mr-1"></i>Invite
+                    </button>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function copyRoomCode() {
+    const code = document.getElementById('roomCode').textContent.trim();
+    navigator.clipboard.writeText(code).then(() => {
+        const btn = document.getElementById('copyBtn');
+        btn.innerHTML = '<i class="fas fa-check mr-1"></i> Copied!';
+        btn.classList.add('text-green-400');
+        setTimeout(() => {
+            btn.innerHTML = '<i class="fas fa-copy"></i> Copy Code';
+            btn.classList.remove('text-green-400');
+        }, 2000);
+    });
+}
+
+function inviteFriend(roomCode, userId, btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>';
+    
+    fetch(`/match/room/${roomCode}/invite/${userId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+        },
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            btn.outerHTML = '<span class="px-3 py-1 rounded-full bg-accent/15 text-accent-light text-xs font-semibold"><i class="fas fa-check mr-1"></i>Invited</span>';
+        }
+    });
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Poll for room status updates
+{% if room.status == 'waiting' %}
+const pollInterval = setInterval(() => {
+    fetch('{% url "room_status_api" room_code=room.room_code %}')
+        .then(r => r.json())
+        .then(data => {
+            if (data.status === 'playing' && data.match_id) {
+                clearInterval(pollInterval);
+                window.location.href = `/match/${data.match_id}/`;
+            }
+            if (data.guest && !document.querySelector('#guestCard .text-xl')) {
+                // Guest joined — reload to show their info
+                window.location.reload();
+            }
+        });
+}, 2000);
+{% endif %}
+</script>
+{% endblock %}

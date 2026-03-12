@@ -12,9 +12,26 @@ from matches.models import Match
 def dashboard_view(request):
     my_tournaments = Tournament.objects.filter(players__user=request.user).order_by('-created_at')
     hosted_tournaments = Tournament.objects.filter(host=request.user).order_by('-created_at')
+    
+    from matches.models import RoomInvite, GameRoom
+    from django.db.models import Q
+    
+    pending_room_invites = RoomInvite.objects.filter(
+        invited_user=request.user, 
+        status='pending',
+        room__status='waiting'
+    ).order_by('-created_at')
+
+    active_rooms = GameRoom.objects.filter(
+        Q(host=request.user) | Q(guest=request.user),
+        status__in=['waiting', 'playing']
+    ).order_by('-created_at')
+    
     return render(request, 'tournaments/dashboard.html', {
         'my_tournaments': my_tournaments,
         'hosted_tournaments': hosted_tournaments,
+        'pending_room_invites': pending_room_invites,
+        'active_rooms': active_rooms,
     })
 
 
