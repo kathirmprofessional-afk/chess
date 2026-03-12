@@ -1,120 +1,64 @@
 {% extends 'base.html' %}
-{% block title %}Register - Chess Tournament{% endblock %}
+{% block title %}Create Account - Chess Tournament{% endblock %}
 
 {% block content %}
-<div class="min-h-screen flex items-center justify-center relative overflow-hidden py-12">
-    <!-- Background Accents -->
-    <div class="absolute top-[10%] right-[10%] w-96 h-96 bg-purple-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20"></div>
-    <div class="absolute bottom-[10%] left-[10%] w-96 h-96 bg-accent rounded-full mix-blend-multiply filter blur-3xl opacity-20"></div>
-
-    <div class="w-full max-w-5xl bg-[#1e293b]/50 backdrop-blur-2xl rounded-3xl shadow-2xl overflow-hidden flex border border-white/10 z-10 animate-fadeInUp m-4">
+<div class="flex items-center justify-center py-12">
+    <div class="card w-full max-w-lg p-8 sm:p-10">
         
-        <!-- Left Side: Form -->
-        <div class="w-full lg:w-1/2 p-8 sm:p-10 md:p-12 flex flex-col justify-center order-2 lg:order-1 bg-[#1e293b]/70">
-            <div class="mb-8 lg:hidden text-center">
-                <div class="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center mb-4 shadow-lg shadow-purple-500/20">
-                    <i class="fas fa-crown text-white text-3xl"></i>
-                </div>
-                <h1 class="text-3xl font-display font-bold text-white">Join the Elite</h1>
-            </div>
+        <div class="text-center mb-8">
+            <h1 class="text-2xl font-display font-bold text-slate-900">Create Account</h1>
+            <p class="text-slate-500 mt-2 text-sm">Join the community and start playing.</p>
+        </div>
+
+        <form method="post" class="space-y-5">
+            {% csrf_token %}
             
-            <div class="hidden lg:block mb-8">
-                <h1 class="text-3xl font-display font-bold text-white mb-2">Create Account</h1>
-                <p class="text-slate-400 text-sm">Join the tournament and challenge players worldwide.</p>
+            <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1.5">Username</label>
+                {{ form.username }}
+                {% if form.username.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ form.username.errors.0 }}</p>
+                {% endif %}
             </div>
 
-            <form method="post" class="space-y-5">
-                {% csrf_token %}
-                
-                <div class="group">
-                    <label class="block text-sm font-medium text-slate-300 mb-1.5 transition-colors group-focus-within:text-purple-400">Username</label>
-                    <div class="relative flex items-center">
-                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                            <i class="fas fa-user border-r border-slate-700/50 pr-3 text-slate-500 group-focus-within:text-purple-400 transition-colors"></i>
-                        </div>
-                        {{ form.username }}
-                    </div>
-                    {% if form.username.errors %}
-                        <p class="text-red-400 text-xs mt-1 font-medium flex items-center gap-1"><i class="fas fa-exclamation-circle"></i> {{ form.username.errors.0 }}</p>
+            <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1.5">Email Address</label>
+                {{ form.email }}
+                {% if form.email.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ form.email.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1.5">Password</label>
+                    {{ form.password1 }}
+                    {% if form.password1.errors %}
+                        <p class="text-red-500 text-xs mt-1">{{ form.password1.errors.0 }}</p>
                     {% endif %}
                 </div>
 
-                <div class="group">
-                    <label class="block text-sm font-medium text-slate-300 mb-1.5 transition-colors group-focus-within:text-purple-400">Email Address</label>
-                    <div class="relative flex items-center">
-                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                            <i class="fas fa-envelope border-r border-slate-700/50 pr-3 text-slate-500 group-focus-within:text-purple-400 transition-colors"></i>
-                        </div>
-                        {{ form.email }}
-                    </div>
-                    {% if form.email.errors %}
-                        <p class="text-red-400 text-xs mt-1 font-medium flex items-center gap-1"><i class="fas fa-exclamation-circle"></i> {{ form.email.errors.0 }}</p>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1.5">Confirm Password</label>
+                    {{ form.password2 }}
+                    {% if form.password2.errors %}
+                        <p class="text-red-500 text-xs mt-1">{{ form.password2.errors.0 }}</p>
                     {% endif %}
                 </div>
+            </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                    <div class="group">
-                        <label class="block text-sm font-medium text-slate-300 mb-1.5 transition-colors group-focus-within:text-purple-400">Password</label>
-                        <div class="relative flex items-center">
-                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                <i class="fas fa-lock border-r border-slate-700/50 pr-3 text-slate-500 group-focus-within:text-purple-400 transition-colors"></i>
-                            </div>
-                            {{ form.password1 }}
-                        </div>
-                        {% if form.password1.errors %}
-                            <p class="text-red-400 text-xs mt-1 font-medium flex items-center gap-1"><i class="fas fa-exclamation-circle"></i> {{ form.password1.errors.0 }}</p>
-                        {% endif %}
-                    </div>
+            <button type="submit" class="btn-primary w-full mt-4">
+                Register Now
+            </button>
+        </form>
 
-                    <div class="group">
-                        <label class="block text-sm font-medium text-slate-300 mb-1.5 transition-colors group-focus-within:text-purple-400">Confirm Password</label>
-                        <div class="relative flex items-center">
-                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                <i class="fas fa-check-circle border-r border-slate-700/50 pr-3 text-slate-500 group-focus-within:text-purple-400 transition-colors"></i>
-                            </div>
-                            {{ form.password2 }}
-                        </div>
-                        {% if form.password2.errors %}
-                            <p class="text-red-400 text-xs mt-1 font-medium flex items-center gap-1"><i class="fas fa-exclamation-circle"></i> {{ form.password2.errors.0 }}</p>
-                        {% endif %}
-                    </div>
-                </div>
-
-                <button type="submit" class="w-full relative group overflow-hidden rounded-xl bg-gradient-to-r from-purple-600 to-pink-500 text-white font-semibold py-3.5 transition-all mt-6 shadow-lg shadow-purple-500/20 hover:shadow-purple-500/40 hover:-translate-y-0.5 outline-none">
-                    <div class="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-                    <span class="relative flex items-center justify-center gap-2">
-                        <span>Register Now</span>
-                        <i class="fas fa-user-plus text-sm"></i>
-                    </span>
-                </button>
-            </form>
-
-            <p class="text-center text-slate-400 mt-8 text-sm">
+        <div class="mt-6 border-t border-slate-200 pt-6 text-center">
+            <p class="text-sm text-slate-600">
                 Already have an account? 
-                <a href="{% url 'login' %}" class="text-purple-400 hover:text-purple-300 transition-colors font-semibold mx-1 border-b border-purple-400/30 hover:border-purple-300 pb-0.5">Sign in</a>
+                <a href="{% url 'login' %}" class="font-medium text-brand-600 hover:text-brand-700 transition-colors">Sign in here</a>
             </p>
         </div>
 
-        <!-- Right Side: Visual -->
-        <div class="hidden lg:flex lg:w-1/2 bg-gradient-to-bl from-[#0f172a] to-[#1e293b] p-12 flex-col justify-between relative overflow-hidden group order-1 lg:order-2 border-l border-white/5">
-            <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1580541832626-2a7131ee809f?q=80&w=2687&auto=format&fit=crop')] bg-cover bg-center opacity-30 mix-blend-overlay transition-transform duration-1000 group-hover:scale-105"></div>
-            <div class="absolute inset-0 bg-gradient-to-b from-transparent via-[#0f172a]/80 to-[#0f172a]"></div>
-            
-            <div class="relative z-10 flex justify-end">
-                <div class="w-16 h-16 rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20 shadow-xl">
-                    <i class="fas fa-crown text-white text-3xl"></i>
-                </div>
-            </div>
-            
-            <div class="relative z-10 text-right">
-                <h2 class="text-4xl font-display font-bold text-white leading-tight mb-6">Rise to the<br><span class="text-transparent bg-clip-text bg-gradient-to-l from-purple-400 to-pink-500">Challenge</span></h2>
-                <ul class="space-y-4 text-slate-300 text-sm ml-auto inline-block text-left">
-                    <li class="flex items-center gap-3 justify-end"><i class="fas fa-check-circle text-purple-400 bg-purple-400/10 rounded-full p-1 border border-purple-400/20"></i> Compete in tournaments</li>
-                    <li class="flex items-center gap-3 justify-end"><i class="fas fa-check-circle text-purple-400 bg-purple-400/10 rounded-full p-1 border border-purple-400/20"></i> Track your Elo rating</li>
-                    <li class="flex items-center gap-3 justify-end"><i class="fas fa-check-circle text-purple-400 bg-purple-400/10 rounded-full p-1 border border-purple-400/20"></i> Play with friends instantly</li>
-                </ul>
-            </div>
-        </div>
     </div>
 </div>
 {% endblock %}

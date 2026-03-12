@@ -3,171 +3,198 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Chess Tournament{% endblock %}</title>
-    <meta name="description" content="Compete with friends in real-time chess tournaments with brackets, invite codes, and live multiplayer.">
+    <title>{% block title %}Chess Tournament Hub{% endblock %}</title>
+    <meta name="description" content="Professional chess tournament management and casual play platform.">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        dark: { 900: '#0a0e17', 800: '#111827', 700: '#1a2332', 600: '#243044' },
-                        accent: { DEFAULT: '#6366f1', light: '#818cf8', dark: '#4f46e5' },
-                        gold: '#f59e0b',
-                        neon: '#22d3ee',
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            900: '#0c4a6e',
+                        },
+                        slate: {
+                            50: '#f8fafc',
+                            100: '#f1f5f9',
+                            200: '#e2e8f0',
+                            700: '#334155',
+                            800: '#1e293b',
+                            900: '#0f172a',
+                        }
                     },
-                    fontFamily: { 'display': ['Outfit', 'sans-serif'], 'body': ['Inter', 'sans-serif'] },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        display: ['Merriweather', 'Georgia', 'serif'],
+                    },
                 }
             }
         }
     </script>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: #0a0e17; color: #e2e8f0; min-height: 100vh; }
-        h1, h2, h3, h4, h5, h6 { font-family: 'Outfit', sans-serif; }
-
-        /* Scrollbar */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #111827; }
-        ::-webkit-scrollbar-thumb { background: #6366f1; border-radius: 3px; }
-
-        /* Animations */
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 5px rgba(99,102,241,0.3); } 50% { box-shadow: 0 0 20px rgba(99,102,241,0.6); } }
-        @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-8px); } }
-        @keyframes shimmer { 0% { background-position: -200% center; } 100% { background-position: 200% center; } }
-        @keyframes blob { 0%, 100% { transform: translate(0, 0) scale(1); } 33% { transform: translate(30px, -50px) scale(1.1); } 66% { transform: translate(-20px, 20px) scale(0.9); } }
-        .animate-fadeInUp { animation: fadeInUp 0.6s ease-out; }
-        .animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
-        .animate-float { animation: float 3s ease-in-out infinite; }
-        .animate-blob { animation: blob 7s infinite; }
-        .animation-delay-2000 { animation-delay: 2s; }
-        .animation-delay-4000 { animation-delay: 4s; }
-        .animate-shimmer { animation: shimmer 2s linear infinite; background-size: 200% 100%; }
-
-        /* Glass Card */
-        .glass-card {
-            background: rgba(17, 24, 39, 0.6);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(99, 102, 241, 0.15);
-            border-radius: 16px;
-            transition: all 0.3s ease;
-        }
-        .glass-card:hover {
-            border-color: rgba(99, 102, 241, 0.4);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 32px rgba(99, 102, 241, 0.15);
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
         }
 
-        /* Buttons */
+        /* Essential Components */
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            border: 1px solid #e2e8f0;
+            transition: box-shadow 0.2s ease-in-out;
+        }
+        .card:hover {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+        }
+
         .btn-primary {
-            background: linear-gradient(135deg, #6366f1, #4f46e5);
-            color: white; padding: 12px 28px; border-radius: 12px;
-            font-weight: 600; border: none; cursor: pointer;
-            transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 8px;
+            background-color: #0284c7;
+            color: white;
+            padding: 0.625rem 1.25rem;
+            border-radius: 6px;
+            font-weight: 500;
+            text-align: center;
+            transition: background-color 0.2s;
+            border: 1px solid #0369a1;
         }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(99,102,241,0.4); }
+        .btn-primary:hover {
+            background-color: #0369a1;
+        }
+
         .btn-secondary {
-            background: rgba(99, 102, 241, 0.1); color: #818cf8;
-            padding: 12px 28px; border-radius: 12px; font-weight: 600;
-            border: 1px solid rgba(99, 102, 241, 0.3); cursor: pointer; transition: all 0.3s ease;
+            background-color: white;
+            color: #334155;
+            padding: 0.625rem 1.25rem;
+            border-radius: 6px;
+            font-weight: 500;
+            text-align: center;
+            border: 1px solid #cbd5e1;
+            transition: all 0.2s;
         }
-        .btn-secondary:hover { background: rgba(99, 102, 241, 0.2); }
-        .btn-danger {
-            background: linear-gradient(135deg, #ef4444, #dc2626);
-            color: white; padding: 10px 24px; border-radius: 12px;
-            font-weight: 600; border: none; cursor: pointer; transition: all 0.3s ease;
+        .btn-secondary:hover {
+            background-color: #f1f5f9;
+            border-color: #94a3b8;
         }
 
-        /* Inputs */
         .form-input {
-            width: 100%; padding: 14px 18px;
-            background: rgba(17, 24, 39, 0.8); border: 1px solid rgba(99, 102, 241, 0.2);
-            border-radius: 12px; color: #e2e8f0; font-size: 15px;
-            transition: all 0.3s ease; outline: none;
+            width: 100%;
+            padding: 0.625rem 1rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            background-color: white;
+            color: #1e293b;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            outline: none;
         }
-        .form-input:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15); }
-        .form-input::placeholder { color: #64748b; }
+        .form-input:focus {
+            border-color: #0ea5e9;
+            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2);
+        }
 
-        /* Toast */
+        /* Toast Notifications */
         .toast {
-            position: fixed; top: 20px; right: 20px; z-index: 9999;
-            padding: 16px 24px; border-radius: 12px;
-            animation: fadeInUp 0.4s ease-out; max-width: 400px;
+            position: fixed; top: 20px; right: 20px; z-index: 50;
+            padding: 1rem 1.5rem; border-radius: 6px; font-weight: 500;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+            animation: slideIn 0.3s ease-out;
+            max-width: 400px;
         }
-        .toast-success { background: rgba(34, 197, 94, 0.15); border: 1px solid rgba(34, 197, 94, 0.3); color: #4ade80; }
-        .toast-error { background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #f87171; }
-        .toast-info { background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.3); color: #818cf8; }
-
-        /* Navbar */
-        .navbar {
-            background: rgba(10, 14, 23, 0.9); backdrop-filter: blur(12px);
-            border-bottom: 1px solid rgba(99, 102, 241, 0.1);
-            position: sticky; top: 0; z-index: 100;
-        }
+        .toast-success { background: #ecfdf5; border-left: 4px solid #10b981; color: #065f46; }
+        .toast-error { background: #fef2f2; border-left: 4px solid #ef4444; color: #991b1b; }
+        .toast-info { background: #eff6ff; border-left: 4px solid #3b82f6; color: #1e40af; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
     </style>
     {% block extra_css %}{% endblock %}
 </head>
 <body>
-    {% if user.is_authenticated %}
-    <nav class="navbar px-6 py-4">
-        <div class="max-w-7xl mx-auto flex items-center justify-between">
-            <a href="{% url 'dashboard' %}" class="flex items-center gap-3 no-underline">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-accent to-purple-600 flex items-center justify-center">
-                    <i class="fas fa-chess-knight text-white text-lg"></i>
+    <!-- Clean, Classic Header -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center">
+                    <a href="{% if user.is_authenticated %}{% url 'dashboard' %}{% else %}{% url 'home' %}{% endif %}" class="flex items-center gap-2 text-slate-900 group no-underline">
+                        <i class="fas fa-chess-knight text-brand-600 text-2xl"></i>
+                        <span class="font-display font-bold text-xl tracking-tight">ChessHub</span>
+                    </a>
                 </div>
-                <span class="text-xl font-display font-bold text-white">ChessTournament</span>
-            </a>
-            <div class="flex items-center gap-6">
-                <a href="{% url 'dashboard' %}" class="text-slate-400 hover:text-white transition text-sm font-medium no-underline">
-                    <i class="fas fa-th-large mr-1"></i> Dashboard
-                </a>
-                <a href="{% url 'friends_list' %}" class="text-slate-400 hover:text-white transition text-sm font-medium no-underline relative">
-                    <i class="fas fa-user-friends mr-1"></i> Friends
-                    {% if pending_friend_count %}
-                    <span class="absolute -top-2 -right-3 w-5 h-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center font-bold animate-pulse">{{ pending_friend_count }}</span>
+                
+                <nav class="hidden md:flex items-center gap-6">
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'dashboard' %}" class="text-slate-600 hover:text-brand-600 font-medium transition-colors no-underline">Dashboard</a>
+                        <a href="{% url 'friends_list' %}" class="text-slate-600 hover:text-brand-600 font-medium transition-colors no-underline flex items-center gap-1">
+                            Friends
+                            {% if pending_friend_count %}
+                            <span class="inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold leading-none text-white bg-red-600 rounded-full">{{ pending_friend_count }}</span>
+                            {% endif %}
+                        </a>
+                        <a href="{% url 'profile' %}" class="text-slate-600 hover:text-brand-600 font-medium transition-colors no-underline">Profile</a>
+                        <div class="h-6 w-px bg-slate-200 mx-2"></div>
+                        <span class="text-slate-500 font-medium">{{ user.username }}</span>
+                        <a href="{% url 'logout' %}" class="text-slate-500 hover:text-red-600 transition-colors no-underline" title="Sign Out">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </a>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="text-slate-600 hover:text-brand-600 font-medium transition-colors no-underline">Sign In</a>
+                        <a href="{% url 'register' %}" class="btn-primary no-underline">Create Account</a>
                     {% endif %}
-                </a>
-                <a href="{% url 'profile' %}" class="text-slate-400 hover:text-white transition text-sm font-medium no-underline">
-                    <i class="fas fa-user mr-1"></i> Profile
-                </a>
-                <a href="{% url 'logout' %}" class="text-red-400 hover:text-red-300 transition text-sm font-medium no-underline">
-                    <i class="fas fa-sign-out-alt mr-1"></i> Logout
-                </a>
+                </nav>
             </div>
         </div>
-    </nav>
-    {% endif %}
+    </header>
 
     {% if messages %}
     <div id="toast-container">
         {% for message in messages %}
         <div class="toast toast-{{ message.tags }}" onclick="this.remove()">
-            {% if message.tags == 'success' %}<i class="fas fa-check-circle mr-2"></i>
-            {% elif message.tags == 'error' %}<i class="fas fa-exclamation-circle mr-2"></i>
-            {% else %}<i class="fas fa-info-circle mr-2"></i>{% endif %}
             {{ message }}
         </div>
         {% endfor %}
     </div>
     {% endif %}
 
-    <main>
+    <!-- Main Content Area -->
+    <main class="flex-grow w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {% block content %}{% endblock %}
     </main>
 
+    <!-- Simple, Professional Footer -->
+    <footer class="bg-white border-t border-slate-200 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="md:flex md:items-center md:justify-between">
+                <div class="flex justify-center md:justify-start mb-4 md:mb-0 gap-4">
+                    <span class="text-slate-500 text-sm">© 2026 ChessHub. All rights reserved.</span>
+                </div>
+                <div class="flex justify-center md:justify-end gap-6">
+                    <a href="#" class="text-slate-400 hover:text-slate-600"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="text-slate-400 hover:text-slate-600"><i class="fab fa-github"></i></a>
+                    <a href="#" class="text-slate-400 hover:text-slate-600"><i class="fas fa-envelope"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
     <script>
-        // Auto-dismiss toasts
+        // Auto-dismiss toasts gently
         setTimeout(() => {
             document.querySelectorAll('.toast').forEach(t => {
                 t.style.opacity = '0';
-                t.style.transform = 'translateY(-20px)';
-                t.style.transition = 'all 0.4s ease';
-                setTimeout(() => t.remove(), 400);
+                t.style.transition = 'opacity 0.5s ease';
+                setTimeout(() => t.remove(), 500);
             });
-        }, 4000);
+        }, 3500);
     </script>
     {% block extra_js %}{% endblock %}
 </body>

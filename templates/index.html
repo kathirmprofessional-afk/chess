@@ -1,22 +1,68 @@
-<!doctype html>
-<html lang="en">
-<head>
-    <meta charset="utf-8"/>
-    <link rel="icon" href="/static/favicon.ico"/>
-    <meta name="viewport" content="width=device-width,initial-scale=1"/>
-    <meta name="description" content="Tournament website For help Players to Make His Tournaments To Play Chess on lichess"/>
-    <link rel="apple-touch-icon" href="/static/favicon.ico">
-    <link rel="stylesheet" href="/static/Fonts/ChakraFont.css"/>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
-    <title>Tournament App</title>
-    <!-- These point to the React build files retrieved from the d6babf5 static/ folder -->
-    <script defer="defer" src="/static/js/main.e7f9bd93.js"></script>
-    <link href="/static/css/main.874900f1.css" rel="stylesheet">
-</head>
-<body>
-    <noscript>You need to enable JavaScript to run this app.</noscript>
-    <div id="root"></div>
-</body>
-</html>
+{% extends 'base.html' %}
+{% block title %}ChessHub - Professional Chess Tournaments{% endblock %}
+
+{% block content %}
+<div class="flex flex-col items-center justify-center text-center py-16 md:py-24 px-4">
+    
+    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-50 border border-brand-100 text-brand-700 text-sm font-medium mb-8">
+        <span class="flex h-2 w-2 relative">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2 bg-brand-500"></span>
+        </span>
+        Welcome to the Classic UI
+    </div>
+
+    <h1 class="text-5xl md:text-6xl font-display font-bold text-slate-900 leading-tight mb-6 max-w-4xl tracking-tight">
+        Play Chess. Organize Tournaments. Connect with Friends.
+    </h1>
+    
+    <p class="text-xl text-slate-500 mb-10 max-w-2xl font-light">
+        A clean, professional hub for managing your chess tournaments and launching casual game rooms with a single code.
+    </p>
+
+    <div class="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+        {% if user.is_authenticated %}
+            <a href="{% url 'dashboard' %}" class="btn-primary text-lg px-8 py-4 flex items-center justify-center gap-2">
+                <i class="fas fa-tachometer-alt"></i> Go to Dashboard
+            </a>
+            <a href="{% url 'create_room' %}" class="btn-secondary text-lg px-8 py-4 flex items-center justify-center gap-2">
+                <i class="fas fa-door-open text-slate-400"></i> Quick Play
+            </a>
+        {% else %}
+            <a href="{% url 'register' %}" class="btn-primary text-lg px-8 py-4 flex items-center justify-center gap-2">
+                Get Started for Free <i class="fas fa-arrow-right text-sm ml-1"></i>
+            </a>
+            <a href="{% url 'login' %}" class="btn-secondary text-lg px-8 py-4">
+                Sign In
+            </a>
+        {% endif %}
+    </div>
+
+    <!-- Feature Highlights -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-24 text-left w-full max-w-5xl">
+        <div class="card p-8 border-t-4 border-t-brand-500 shadow-sm hover:shadow-md transition-shadow">
+            <div class="w-12 h-12 bg-brand-50 rounded-lg flex items-center justify-center text-brand-600 mb-5 border border-brand-100">
+                <i class="fas fa-sitemap text-xl"></i>
+            </div>
+            <h3 class="text-xl font-display font-bold text-slate-800 mb-3">Live Tournaments</h3>
+            <p class="text-slate-500 text-sm leading-relaxed">Create single-elimination brackets for up to 32 players. Invite through a unique code and track the bracket in real-time as games complete.</p>
+        </div>
+
+        <div class="card p-8 border-t-4 border-t-emerald-500 shadow-sm hover:shadow-md transition-shadow">
+            <div class="w-12 h-12 bg-emerald-50 rounded-lg flex items-center justify-center text-emerald-600 mb-5 border border-emerald-100">
+                <i class="fas fa-door-open text-xl"></i>
+            </div>
+            <h3 class="text-xl font-display font-bold text-slate-800 mb-3">Casual Rooms</h3>
+            <p class="text-slate-500 text-sm leading-relaxed">Launch a 6-character room code and share it anywhere. Your opponent enters the code, and you are instantly dropped into a match.</p>
+        </div>
+
+        <div class="card p-8 border-t-4 border-t-amber-500 shadow-sm hover:shadow-md transition-shadow">
+            <div class="w-12 h-12 bg-amber-50 rounded-lg flex items-center justify-center text-amber-600 mb-5 border border-amber-100">
+                <i class="fas fa-users text-xl"></i>
+            </div>
+            <h3 class="text-xl font-display font-bold text-slate-800 mb-3">Friends Network</h3>
+            <p class="text-slate-500 text-sm leading-relaxed">Build your chess network. Search for users, see their Elo rating, send friend requests, and send direct invitations to play in your rooms.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

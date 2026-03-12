@@ -1,142 +1,149 @@
 {% extends 'base.html' %}
-{% block title %}Room {{ room.room_code }} - Chess Tournament{% endblock %}
+{% block title %}Room {{ room.room_code }} - ChessHub{% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto px-6 py-12">
-    <div class="animate-fadeInUp">
-        <!-- Header -->
-        <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
-            <div>
-                <h1 class="text-3xl font-display font-bold text-white">
-                    <i class="fas fa-chess-board text-accent mr-3"></i>Game Room
-                </h1>
-                <p class="text-slate-400 mt-1">Waiting for players to join...</p>
-            </div>
-            <a href="{% url 'dashboard' %}" class="btn-secondary text-sm">
-                <i class="fas fa-arrow-left"></i> Leave Room
-            </a>
-        </div>
+<div class="mb-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+    <div>
+        <h1 class="text-3xl font-display font-bold text-slate-900 flex items-center gap-3">
+            <i class="fas fa-door-open text-brand-600"></i> Game Room
+        </h1>
+        <p class="text-slate-500 mt-1">{% if room.status == 'waiting' %}Waiting for players to join...{% else %}Game is live!{% endif %}</p>
+    </div>
+    <a href="{% url 'dashboard' %}" class="btn-secondary text-sm">
+        <i class="fas fa-arrow-left mr-1.5"></i> Leave Room
+    </a>
+</div>
 
-        <!-- Room Code Card -->
-        <div class="glass-card p-8 mb-8 text-center" style="border-color: rgba(99, 102, 241, 0.3);">
-            <p class="text-slate-400 text-sm mb-2 uppercase tracking-widest font-semibold">Room Code</p>
-            <div class="flex items-center justify-center gap-4 mb-4">
-                <span id="roomCode" class="text-5xl font-display font-extrabold tracking-[0.3em] text-transparent bg-clip-text bg-gradient-to-r from-accent-light via-neon to-accent-light animate-pulse-glow px-6 py-3 rounded-2xl border-2 border-accent/30" style="letter-spacing: 0.3em;">
+<!-- Room Code Banner -->
+<div class="card bg-brand-50 border-brand-200 p-8 mb-8 text-center relative overflow-hidden">
+    <div class="absolute top-0 right-0 p-4 opacity-10">
+        <i class="fas fa-chess text-8xl text-brand-900"></i>
+    </div>
+    
+    <div class="relative z-10">
+        <p class="text-brand-700 font-semibold uppercase tracking-wider text-sm mb-3">Share this code with your opponent</p>
+        <div class="flex flex-col items-center justify-center gap-4">
+            <div class="bg-white border-2 border-brand-300 rounded-xl px-8 py-4 shadow-sm inline-block">
+                <span id="roomCode" class="text-5xl font-mono font-bold tracking-[0.2em] text-slate-800">
                     {{ room.room_code }}
                 </span>
             </div>
-            <button onclick="copyRoomCode()" id="copyBtn" class="btn-secondary text-sm mt-2">
-                <i class="fas fa-copy"></i> Copy Code
+            <button onclick="copyRoomCode()" id="copyBtn" class="btn-primary inline-flex items-center gap-2 mt-2">
+                <i class="fas fa-copy"></i> Copy Link/Code
             </button>
         </div>
+    </div>
+</div>
 
-        <!-- Players -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
+    
+    <!-- Players Section -->
+    <div class="lg:col-span-2 flex flex-col gap-6">
+        <h2 class="text-xl font-display font-bold text-slate-800">Players</h2>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <!-- Host -->
-            <div class="glass-card p-6" style="border-color: rgba(34, 197, 94, 0.3);">
+            <div class="card p-6 border-t-4 border-t-emerald-500 relative">
+                <div class="absolute top-4 right-4 text-emerald-500 bg-emerald-50 rounded-full px-2 py-1 text-xs font-bold uppercase tracking-wide">
+                    Host
+                </div>
                 <div class="flex items-center gap-4">
-                    <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-2xl font-display font-bold text-white shadow-lg shadow-green-500/20">
+                    <div class="w-16 h-16 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-2xl font-bold text-emerald-700 shadow-sm">
                         {{ room.host.username.0|upper }}
                     </div>
                     <div>
-                        <div class="text-xs text-green-400 uppercase tracking-wider font-semibold mb-1">
-                            <i class="fas fa-crown mr-1"></i>Host
-                        </div>
-                        <div class="text-xl text-white font-semibold">{{ room.host.username }}</div>
-                        <div class="text-slate-400 text-sm"><i class="fas fa-star text-gold mr-1"></i>{{ room.host.rating }}</div>
+                        <div class="text-xl font-bold text-slate-900">{{ room.host.username }}</div>
+                        <div class="text-slate-500"><i class="fas fa-star text-amber-500 mr-1"></i>{{ room.host.rating }} Elo</div>
                     </div>
                 </div>
             </div>
 
-            <!-- Guest -->
-            <div class="glass-card p-6" id="guestCard">
+            <!-- Guest / Opponent -->
+            <div class="card p-6 border-t-4 {% if room.guest %}border-t-brand-500{% else %}border-t-slate-300 border-dashed{% endif %} relative" id="guestCard">
                 {% if room.guest %}
+                <div class="absolute top-4 right-4 text-brand-600 bg-brand-50 rounded-full px-2 py-1 text-xs font-bold uppercase tracking-wide">
+                    Opponent
+                </div>
                 <div class="flex items-center gap-4">
-                    <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-accent to-purple-600 flex items-center justify-center text-2xl font-display font-bold text-white shadow-lg shadow-accent/20">
+                    <div class="w-16 h-16 rounded-full bg-brand-50 border border-brand-100 flex items-center justify-center text-2xl font-bold text-brand-700 shadow-sm">
                         {{ room.guest.username.0|upper }}
                     </div>
                     <div>
-                        <div class="text-xs text-accent-light uppercase tracking-wider font-semibold mb-1">
-                            <i class="fas fa-user mr-1"></i>Opponent
-                        </div>
-                        <div class="text-xl text-white font-semibold">{{ room.guest.username }}</div>
-                        <div class="text-slate-400 text-sm"><i class="fas fa-star text-gold mr-1"></i>{{ room.guest.rating }}</div>
+                        <div class="text-xl font-bold text-slate-900">{{ room.guest.username }}</div>
+                        <div class="text-slate-500"><i class="fas fa-star text-amber-500 mr-1"></i>{{ room.guest.rating }} Elo</div>
                     </div>
                 </div>
                 {% else %}
-                <div class="flex flex-col items-center justify-center h-full py-4" id="waitingState">
-                    <div class="w-16 h-16 rounded-2xl border-2 border-dashed border-slate-600 flex items-center justify-center mb-3">
-                        <i class="fas fa-user-plus text-slate-500 text-2xl"></i>
+                <div class="flex flex-col items-center justify-center h-full min-h-[5rem]" id="waitingState">
+                    <div class="text-slate-400 mb-2">
+                        <i class="fas fa-spinner fa-spin text-2xl"></i>
                     </div>
-                    <p class="text-slate-400 font-semibold">Waiting for opponent...</p>
-                    <div class="flex items-center gap-2 mt-2">
-                        <div class="w-2 h-2 rounded-full bg-accent animate-bounce" style="animation-delay: 0s;"></div>
-                        <div class="w-2 h-2 rounded-full bg-accent animate-bounce" style="animation-delay: 0.15s;"></div>
-                        <div class="w-2 h-2 rounded-full bg-accent animate-bounce" style="animation-delay: 0.3s;"></div>
-                    </div>
+                    <p class="text-slate-500 font-medium">Waiting for opponent...</p>
                 </div>
                 {% endif %}
             </div>
         </div>
 
-        <!-- Start Game Button (Host only) -->
-        {% if user == room.host %}
-        <div class="text-center mb-8">
-            <form method="post" action="{% url 'start_room_game' room_code=room.room_code %}" id="startForm">
-                {% csrf_token %}
-                <button type="submit" id="startBtn" class="btn-primary text-lg px-10 py-4 {% if not room.guest %}opacity-50 cursor-not-allowed{% endif %}" {% if not room.guest %}disabled{% endif %}>
-                    <i class="fas fa-play mr-2"></i> Start Game
-                </button>
-            </form>
-            {% if not room.guest %}
-            <p class="text-slate-500 text-sm mt-3">Share the room code or invite a friend to start playing</p>
+        <!-- Start Game Control -->
+        <div class="mt-4 bg-white border border-slate-200 rounded-xl p-8 text-center shadow-sm">
+            {% if user == room.host %}
+                <h3 class="text-lg font-bold text-slate-800 mb-2">Ready to Play?</h3>
+                <p class="text-slate-500 mb-6 text-sm max-w-md mx-auto">Once your opponent joins the room, click the button below to generate the chess board and start the match.</p>
+                
+                <form method="post" action="{% url 'start_room_game' room_code=room.room_code %}" id="startForm">
+                    {% csrf_token %}
+                    <button type="submit" id="startBtn" class="bg-brand-600 hover:bg-brand-700 text-white font-bold text-lg px-10 py-3.5 rounded-lg transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-brand-600" {% if not room.guest %}disabled{% endif %}>
+                        <i class="fas fa-play mr-2"></i> Start Match
+                    </button>
+                </form>
+            {% else %}
+                {% if room.guest == user %}
+                    <div class="inline-flex items-center gap-3 bg-amber-50 border border-amber-200 text-amber-800 px-6 py-4 rounded-lg font-medium">
+                        <i class="fas fa-hourglass-half fa-spin text-amber-500 text-xl"></i>
+                        Waiting for the host to start the match...
+                    </div>
+                {% endif %}
             {% endif %}
         </div>
-        {% else %}
-        {% if room.guest == user %}
-        <div class="text-center mb-8">
-            <div class="glass-card inline-block px-8 py-4">
-                <i class="fas fa-hourglass-half text-accent-light text-xl mr-2 animate-pulse"></i>
-                <span class="text-white font-semibold">Waiting for host to start the game...</span>
-            </div>
-        </div>
-        {% endif %}
-        {% endif %}
+    </div>
 
-        <!-- Invite Friends (Host only) -->
-        {% if user == room.host and friends %}
-        <div class="glass-card p-6 mb-8">
-            <h2 class="text-lg font-display font-semibold text-white mb-4">
-                <i class="fas fa-paper-plane text-neon mr-2"></i>Invite Friends
-            </h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+    <!-- Invite Friends Sidebar -->
+    {% if user == room.host and friends %}
+    <div>
+        <h2 class="text-xl font-display font-bold text-slate-800 mb-4 flex items-center gap-2">
+            <i class="fas fa-user-plus text-slate-400"></i> Invite Friends
+        </h2>
+        
+        <div class="card overflow-hidden">
+            <ul class="divide-y divide-slate-100 max-h-[500px] overflow-y-auto">
                 {% for friend in friends %}
-                <div class="flex items-center justify-between p-3 rounded-xl hover:bg-white/5 transition">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-accent to-purple-600 flex items-center justify-center text-sm font-display font-bold text-white">
+                <li class="p-3 hover:bg-slate-50 transition-colors flex items-center justify-between">
+                    <div class="flex items-center gap-3 overflow-hidden">
+                        <div class="w-8 h-8 rounded-full bg-brand-50 text-brand-700 flex items-center justify-center font-bold text-xs flex-shrink-0">
                             {{ friend.username.0|upper }}
                         </div>
-                        <div>
-                            <div class="text-white font-semibold text-sm">{{ friend.username }}</div>
-                            <div class="text-slate-400 text-xs"><i class="fas fa-star text-gold mr-1"></i>{{ friend.rating }}</div>
+                        <div class="truncate">
+                            <p class="text-slate-800 font-medium text-sm truncate">{{ friend.username }}</p>
                         </div>
                     </div>
+                    
                     {% if friend.id in invited_ids %}
-                    <span class="px-3 py-1 rounded-full bg-accent/15 text-accent-light text-xs font-semibold">
-                        <i class="fas fa-check mr-1"></i>Invited
+                    <span class="inline-flex items-center gap-1 bg-slate-100 text-slate-500 px-2 py-1 rounded text-xs font-semibold flex-shrink-0">
+                        <i class="fas fa-check"></i> Invited
                     </span>
                     {% else %}
                     <button onclick="inviteFriend('{{ room.room_code }}', {{ friend.id }}, this)" 
-                            class="px-4 py-2 rounded-lg bg-accent/20 text-accent-light border border-accent/30 hover:bg-accent/30 transition font-semibold text-xs cursor-pointer">
-                        <i class="fas fa-paper-plane mr-1"></i>Invite
+                            class="inline-flex items-center gap-1 bg-white border border-brand-200 text-brand-600 hover:bg-brand-50 px-2 py-1 rounded text-xs font-semibold transition-colors flex-shrink-0 cursor-pointer">
+                        Invite
                     </button>
                     {% endif %}
-                </div>
+                </li>
                 {% endfor %}
-            </div>
+            </ul>
         </div>
-        {% endif %}
     </div>
+    {% endif %}
+
 </div>
 {% endblock %}
 
@@ -144,20 +151,29 @@
 <script>
 function copyRoomCode() {
     const code = document.getElementById('roomCode').textContent.trim();
+    // Assuming full URL copying is more helpful for quick joins
+    const url = window.location.origin + window.location.pathname;
+    
+    // Copy URL to clipboard, fallback to raw code if wanted
     navigator.clipboard.writeText(code).then(() => {
         const btn = document.getElementById('copyBtn');
-        btn.innerHTML = '<i class="fas fa-check mr-1"></i> Copied!';
-        btn.classList.add('text-green-400');
+        const originalText = btn.innerHTML;
+        
+        btn.innerHTML = '<i class="fas fa-check text-emerald-300"></i> Copied!';
+        btn.classList.add('bg-emerald-600', 'border-emerald-600');
+        btn.classList.remove('bg-brand-600');
+        
         setTimeout(() => {
-            btn.innerHTML = '<i class="fas fa-copy"></i> Copy Code';
-            btn.classList.remove('text-green-400');
+            btn.innerHTML = originalText;
+            btn.classList.remove('bg-emerald-600', 'border-emerald-600');
+            btn.classList.add('bg-brand-600');
         }, 2000);
     });
 }
 
 function inviteFriend(roomCode, userId, btn) {
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>';
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
     
     fetch(`/match/room/${roomCode}/invite/${userId}/`, {
         method: 'POST',
@@ -168,7 +184,7 @@ function inviteFriend(roomCode, userId, btn) {
     .then(r => r.json())
     .then(data => {
         if (data.success) {
-            btn.outerHTML = '<span class="px-3 py-1 rounded-full bg-accent/15 text-accent-light text-xs font-semibold"><i class="fas fa-check mr-1"></i>Invited</span>';
+            btn.outerHTML = '<span class="inline-flex items-center gap-1 bg-slate-100 text-slate-500 px-2 py-1 rounded text-xs font-semibold"><i class="fas fa-check"></i> Invited</span>';
         }
     });
 }
@@ -188,7 +204,7 @@ function getCookie(name) {
     return cookieValue;
 }
 
-// Poll for room status updates
+// Poll for room status updates (guest joining or game starting)
 {% if room.status == 'waiting' %}
 const pollInterval = setInterval(() => {
     fetch('{% url "room_status_api" room_code=room.room_code %}')
@@ -199,7 +215,7 @@ const pollInterval = setInterval(() => {
                 window.location.href = `/match/${data.match_id}/`;
             }
             if (data.guest && !document.querySelector('#guestCard .text-xl')) {
-                // Guest joined — reload to show their info
+                // Guest joined — reload to show their info and enable start button
                 window.location.reload();
             }
         });
