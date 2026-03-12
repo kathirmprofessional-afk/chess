@@ -40,6 +40,50 @@ def api_login_view(request):
     return JsonResponse({'error': 'Method not allowed'}, status=405)
 
 
+@csrf_exempt
+def api_register_view(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            data = request.POST
+        username = data.get('username', '')
+        email = data.get('email', '')
+        password = data.get('password', '')
+
+        if not username or not email or not password:
+            return JsonResponse({
+                'success': False,
+                'message': 'Username, email, and password are required.'
+            }, status=400)
+
+        from .models import User
+        if User.objects.filter(username__iexact=username).exists():
+            return JsonResponse({
+                'success': False,
+                'message': 'Username already taken.'
+            }, status=400)
+        if User.objects.filter(email__iexact=email).exists():
+            return JsonResponse({
+                'success': False,
+                'message': 'Email already registered.'
+            }, status=400)
+
+        user = User.objects.create_user(username=username, email=email, password=password)
+        login(request, user, backend='accounts.backends.EmailOrUsernameModelBackend')
+        return JsonResponse({
+            'success': True,
+            'message': 'Registration successful',
+            'user': {
+                'id': user.id,
+                'username': user.username,
+                'email': user.email,
+                'rating': user.rating,
+            }
+        })
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+
 def register_view(request):
     if request.method == 'POST':
         form = RegisterForm(request.POST)
