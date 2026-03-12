@@ -91,7 +91,7 @@ def register_view(request):
         form = RegisterForm(request.POST)
         if form.is_valid():
             user = form.save()
-            login(request, user)
+            login(request, user, backend='accounts.backends.EmailOrUsernameModelBackend')
             messages.success(request, 'Account created successfully!')
             return redirect('dashboard')
     else:

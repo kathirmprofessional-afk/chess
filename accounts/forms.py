@@ -5,25 +5,26 @@ from .models import User
 
 class RegisterForm(UserCreationForm):
     email = forms.EmailField(required=True, widget=forms.EmailInput(attrs={
-        'class': 'form-input w-full pl-11 py-3 bg-[#0f172a]/50 border-slate-700/50 focus:bg-[#0f172a] focus:border-purple-400/50 transition-all shadow-inner rounded-lg text-white',
+        'class': 'form-input',
         'placeholder': 'player@example.com',
     }))
 
     class Meta:
         model = User
-        fields = ['username', 'email', 'password1', 'password2']
+        fields = ['username', 'email']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # Apply the 'form-input' class if not already there, and set placeholders
         self.fields['username'].widget.attrs.update({
-            'class': 'form-input w-full pl-11 py-3 bg-[#0f172a]/50 border-slate-700/50 focus:bg-[#0f172a] focus:border-purple-400/50 transition-all shadow-inner rounded-lg text-white',
+            'class': 'form-input',
             'placeholder': 'Choose a username',
         })
         self.fields['password1'].widget.attrs.update({
-            'class': 'form-input w-full pl-11 py-3 bg-[#0f172a]/50 border-slate-700/50 focus:bg-[#0f172a] focus:border-purple-400/50 transition-all shadow-inner rounded-lg text-white',
+            'class': 'form-input',
             'placeholder': 'Create a password',
         })
         self.fields['password2'].widget.attrs.update({
-            'class': 'form-input w-full pl-11 py-3 bg-[#0f172a]/50 border-slate-700/50 focus:bg-[#0f172a] focus:border-purple-400/50 transition-all shadow-inner rounded-lg text-white',
+            'class': 'form-input',
             'placeholder': 'Confirm your password',
         })
