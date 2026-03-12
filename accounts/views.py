@@ -1,10 +1,43 @@
+import json
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Q
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 from .forms import RegisterForm
 from matches.models import Match
+
+
+@csrf_exempt
+def api_login_view(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            data = request.POST
+        username = data.get('username', '')
+        password = data.get('password', '')
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            return JsonResponse({
+                'success': True,
+                'message': 'Login successful',
+                'user': {
+                    'id': user.id,
+                    'username': user.username,
+                    'email': user.email,
+                    'rating': user.rating,
+                }
+            })
+        else:
+            return JsonResponse({
+                'success': False,
+                'message': 'Invalid username/email or password.'
+            }, status=401)
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
 
 
 def register_view(request):
