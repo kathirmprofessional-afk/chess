@@ -2,47 +2,57 @@
 {% block title %}Profile - {{ user.username }}{% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto px-6 py-12">
-    <div class="animate-fadeInUp">
-        <!-- Profile Header -->
-        <div class="glass-card p-8 mb-8">
-            <div class="flex items-center gap-6">
-                <div class="w-24 h-24 rounded-2xl bg-gradient-to-br from-accent to-purple-600 flex items-center justify-center text-4xl font-display font-bold text-white">
-                    {{ user.username.0|upper }}
-                </div>
-                <div>
-                    <h1 class="text-3xl font-display font-bold text-white">{{ user.username }}</h1>
-                    <p class="text-slate-400 mt-1"><i class="fas fa-envelope mr-2"></i>{{ user.email }}</p>
-                    <div class="flex items-center gap-2 mt-3">
-                        <span class="px-3 py-1 rounded-full bg-gold/20 text-gold text-sm font-semibold">
-                            <i class="fas fa-star mr-1"></i> Rating: {{ user.rating }}
-                        </span>
-                    </div>
-                </div>
-            </div>
-        </div>
+<div class="max-w-4xl mx-auto py-8">
+    <div class="mb-8">
+        <h1 class="text-3xl font-display font-bold text-slate-900">User Profile</h1>
+        <p class="text-slate-500 mt-1">Manage your account and view your performance stats.</p>
+    </div>
 
-        <!-- Stats -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div class="glass-card p-6 text-center">
-                <div class="text-4xl font-display font-bold text-accent">{{ matches_played }}</div>
-                <div class="text-slate-400 mt-1 text-sm">Matches Played</div>
+    <!-- Profile Header Card -->
+    <div class="card p-8 mb-8 border-l-4 border-l-brand-600">
+        <div class="flex flex-col sm:flex-row items-center gap-8">
+            <div class="w-24 h-24 rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center text-4xl font-display font-bold text-slate-700 shadow-inner">
+                {{ user.username.0|upper }}
             </div>
-            <div class="glass-card p-6 text-center">
-                <div class="text-4xl font-display font-bold text-green-400">{{ matches_won }}</div>
-                <div class="text-slate-400 mt-1 text-sm">Matches Won</div>
+            <div class="text-center sm:text-left flex-grow">
+                <h2 class="text-2xl font-display font-bold text-slate-900">{{ user.username }}</h2>
+                <div class="flex flex-wrap justify-center sm:justify-start items-center gap-4 mt-2">
+                    <span class="text-slate-500 flex items-center gap-2">
+                        <i class="fas fa-envelope text-slate-400"></i> {{ user.email }}
+                    </span>
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 text-amber-700 text-sm font-semibold border border-amber-200">
+                        <i class="fas fa-chess-knight"></i> ELO Rating: {{ user.rating }}
+                    </span>
+                </div>
             </div>
-            <div class="glass-card p-6 text-center">
-                <div class="text-4xl font-display font-bold text-gold">{{ user.rating }}</div>
-                <div class="text-slate-400 mt-1 text-sm">ELO Rating</div>
+            <div>
+                <a href="{% url 'logout' %}" class="btn-secondary text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300">
+                    <i class="fas fa-sign-out-alt mr-1.5"></i> Sign Out
+                </a>
             </div>
         </div>
+    </div>
 
-        <div class="text-center">
-            <a href="{% url 'dashboard' %}" class="btn-primary">
-                <i class="fas fa-arrow-left"></i> Back to Dashboard
-            </a>
+    <!-- Stats Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
+        <div class="card p-6 text-center group hover:border-brand-300 transition-all">
+            <div class="text-4xl font-display font-bold text-slate-900 group-hover:text-brand-600 transition-colors">{{ matches_played }}</div>
+            <div class="text-slate-500 mt-2 text-sm font-medium uppercase tracking-wider">Matches Played</div>
         </div>
+        <div class="card p-6 text-center group hover:border-emerald-300 transition-all">
+            <div class="text-4xl font-display font-bold text-slate-900 group-hover:text-emerald-600 transition-colors">{{ matches_won }}</div>
+            <div class="text-slate-500 mt-2 text-sm font-medium uppercase tracking-wider">Matches Won</div>
+        </div>
+        <div class="card p-6 text-center group hover:border-amber-300 transition-all">
+            <div class="text-4xl font-display font-bold text-slate-900 group-hover:text-amber-600 transition-colors">{{ user.rating }}</div>
+            <div class="text-slate-500 mt-2 text-sm font-medium uppercase tracking-wider">Current Rating</div>
+        </div>
+    </div>
+
+    <div class="flex justify-center">
+        <a href="{% url 'dashboard' %}" class="btn-secondary">
+            <i class="fas fa-arrow-left mr-2"></i> Back to Dashboard
+        </a>
     </div>
 </div>
 {% endblock %}

@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}{{ match.player1.username|default:"TBD" }} vs {{ match.player2.username|default:"TBD" }} — Chess Tournament{% endblock %}
+{% block title %}{{ match.player1.username|default:"TBD" }} vs {{ match.player2.username|default:"TBD" }} — ChessHub{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
@@ -9,211 +9,212 @@
     #chessboard .white-1e1d7 { background-color: #EBECD0 !important; color: #779556 !important; }
     #chessboard .black-3c85d { background-color: #779556 !important; color: #EBECD0 !important; }
     #chessboard {
-        border-radius: 6px;
-        box-shadow: 0 12px 60px rgba(0,0,0,0.5), 0 0 0 6px #3a3a3a, 0 0 0 8px #2a2a2a;
+        border-radius: 8px;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        border: 4px solid #f1f5f9;
+        overflow: hidden;
     }
 
     /* ── Page layout ── */
-    .game-wrapper {
+    .game-container {
         display: grid;
-        grid-template-columns: 1fr 300px;
-        gap: 20px;
-        max-width: 960px;
-        margin: 0 auto;
+        grid-template-columns: 1fr 340px;
+        gap: 32px;
         align-items: start;
     }
-    @media (max-width: 900px) {
-        .game-wrapper {
+    @media (max-width: 1024px) {
+        .game-container {
             grid-template-columns: 1fr;
-            max-width: 580px;
+            max-width: 600px;
+            margin: 0 auto;
         }
     }
 
-    /* ── Board sizing ── */
-    .board-column { display: flex; flex-direction: column; gap: 10px; }
-    .board-area { width: 100%; max-width: 580px; margin: 0 auto; }
-
-    /* ── Player bar ── */
-    .player-bar {
-        display: flex; align-items: center; gap: 12px;
-        padding: 10px 16px; border-radius: 10px;
-        background: rgba(17, 24, 39, 0.5);
-        border: 1px solid rgba(255,255,255,0.06);
-        transition: all 0.3s;
+    /* ── Player bars ── */
+    .player-card {
+        display: flex; align-items: center; gap: 16px;
+        padding: 12px 20px; border-radius: 12px;
+        background: white; border: 1px solid #e2e8f0;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    .player-bar.active-turn {
-        background: rgba(119, 149, 86, 0.15);
-        border-color: rgba(119, 149, 86, 0.4);
-        box-shadow: 0 0 12px rgba(119, 149, 86, 0.15);
+    .player-card.active-turn {
+        border-color: #0ea5e9;
+        background: #f0f9ff;
+        box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.1);
     }
     .player-avatar {
-        width: 40px; height: 40px; border-radius: 10px;
+        width: 48px; height: 48px; border-radius: 10px;
         display: flex; align-items: center; justify-content: center;
-        font-weight: 700; font-size: 16px; font-family: 'Outfit', sans-serif;
+        font-weight: 700; font-size: 18px;
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
     }
-    .avatar-white { background: linear-gradient(135deg, #f0f0f0, #d4d4d4); color: #333; }
-    .avatar-black { background: linear-gradient(135deg, #555, #333); color: #eee; }
-
-    /* ── Side panel ── */
-    .side-panel {
-        background: rgba(17, 24, 39, 0.5);
-        border: 1px solid rgba(255,255,255,0.06);
-        border-radius: 14px;
-        overflow: hidden;
-        display: flex; flex-direction: column;
-        max-height: 640px;
-    }
-    .panel-header {
-        padding: 14px 18px;
-        background: rgba(119, 149, 86, 0.1);
-        border-bottom: 1px solid rgba(255,255,255,0.06);
-        font-family: 'Outfit', sans-serif;
-        font-weight: 600; font-size: 13px;
-        text-transform: uppercase; letter-spacing: 1px;
-        color: #94a3b8;
-    }
+    .avatar-white { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+    .avatar-black { background: #1e293b; color: white; }
 
     /* ── Move list ── */
-    .move-list {
-        flex: 1; overflow-y: auto; padding: 8px;
+    .move-history {
+        flex: 1; overflow-y: auto; padding: 0;
     }
     .move-row {
-        display: grid; grid-template-columns: 32px 1fr 1fr;
-        gap: 4px; padding: 0; font-size: 13px;
-        font-family: 'Outfit', monospace;
+        display: grid; grid-template-columns: 40px 1fr 1fr;
+        gap: 2px; padding: 0; font-size: 14px;
+        font-family: 'Inter', sans-serif;
     }
-    .move-row:nth-child(odd) { background: rgba(255,255,255,0.02); }
-    .move-num { color: #4a5568; text-align: center; padding: 6px 0; font-size: 11px; }
+    .move-row:nth-child(even) { background: #f8fafc; }
+    .move-num { 
+        color: #94a3b8; text-align: center; padding: 8px 0; 
+        font-size: 12px; font-weight: 600; background: #f1f5f9;
+    }
     .move-cell {
-        padding: 6px 10px; border-radius: 4px; cursor: default;
-        transition: background 0.15s;
+        padding: 8px 12px; cursor: default;
+        transition: all 0.2s;
+        color: #475569;
     }
-    .move-cell:hover { background: rgba(119, 149, 86, 0.15); }
-    .move-cell.white-move { color: #e2e8f0; }
-    .move-cell.black-move { color: #a0aec0; }
-    .move-cell.latest { background: rgba(119, 149, 86, 0.2); color: #fff; }
+    .move-cell:hover { background: #e0f2fe; color: #0369a1; }
+    .move-cell.latest { background: #0ea5e9; color: white; font-weight: 600; }
 
     /* ── Status bar ── */
-    .status-bar {
-        padding: 14px 18px;
+    .status-indicator {
+        padding: 16px;
         text-align: center;
-        font-family: 'Outfit', sans-serif;
-        font-weight: 600; font-size: 15px;
-        border-bottom: 1px solid rgba(255,255,255,0.06);
+        font-weight: 700; font-size: 16px;
+        border-bottom: 1px solid #e2e8f0;
+        letter-spacing: -0.01em;
     }
-    .status-your-turn { background: rgba(119, 149, 86, 0.15); color: #a3be7b; }
-    .status-waiting { background: rgba(100, 116, 139, 0.1); color: #94a3b8; }
-    .status-check { background: rgba(239, 68, 68, 0.12); color: #f87171; }
-    .status-over { background: rgba(245, 158, 11, 0.12); color: #fbbf24; }
+    .status-your-turn { background: #f0f9ff; color: #0369a1; }
+    .status-waiting { background: #f8fafc; color: #64748b; }
+    .status-check { background: #fef2f2; color: #b91c1c; }
+    .status-over { background: #fffbeb; color: #b45309; }
 
     /* ── Actions ── */
-    .panel-actions {
-        padding: 12px; border-top: 1px solid rgba(255,255,255,0.06);
-        display: flex; gap: 8px;
+    .panel-footer {
+        padding: 16px; border-top: 1px solid #e2e8f0;
+        display: flex; gap: 12px; background: #f8fafc;
     }
-    .btn-resign {
-        flex: 1; padding: 8px 12px; border-radius: 8px;
-        background: rgba(239, 68, 68, 0.1); color: #f87171;
-        border: 1px solid rgba(239, 68, 68, 0.2);
-        font-size: 12px; font-weight: 600; cursor: pointer;
-        transition: all 0.2s; font-family: 'Outfit', sans-serif;
-    }
-    .btn-resign:hover { background: rgba(239, 68, 68, 0.2); }
-    .btn-back {
-        flex: 1; padding: 8px 12px; border-radius: 8px;
-        background: rgba(99, 102, 241, 0.1); color: #818cf8;
-        border: 1px solid rgba(99, 102, 241, 0.2);
-        font-size: 12px; font-weight: 600; cursor: pointer;
-        transition: all 0.2s; font-family: 'Outfit', sans-serif;
-        text-decoration: none; text-align: center;
-    }
-    .btn-back:hover { background: rgba(99, 102, 241, 0.2); }
 
     /* ── Modal ── */
     .modal-overlay {
-        position: fixed; inset: 0; background: rgba(0,0,0,0.75);
+        position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4);
         display: none; align-items: center; justify-content: center; z-index: 1000;
-        backdrop-filter: blur(6px);
+        backdrop-filter: blur(4px);
     }
     .modal-overlay.show { display: flex; }
-    .modal-content {
-        background: #14191f; border: 1px solid rgba(119, 149, 86, 0.3);
-        border-radius: 20px; padding: 40px; text-align: center; max-width: 400px;
-        animation: fadeInUp 0.4s ease-out;
-        box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    .modal-box {
+        background: white; border: 1px solid #e2e8f0;
+        border-radius: 24px; padding: 48px; text-align: center; max-width: 440px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+        animation: modalIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes modalIn {
+        from { opacity: 0; transform: scale(0.95) translateY(20px); }
+        to { opacity: 1; transform: scale(1) translateY(0); }
     }
 
     /* ── Highlight ── */
-    .highlight-sq { box-shadow: inset 0 0 0 3px rgba(255, 255, 0, 0.5) !important; }
+    .highlight-sq { box-shadow: inset 0 0 0 4px rgba(14, 165, 233, 0.4) !important; }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="px-4 py-6">
-    <div class="animate-fadeInUp">
-        <!-- Top bar -->
-        <div class="text-center mb-5">
-            <a href="{% url 'tournament_detail' pk=match.tournament.pk %}" class="text-slate-500 hover:text-slate-300 text-sm transition no-underline">
-                <i class="fas fa-arrow-left mr-1"></i> {{ match.tournament.name }}
-            </a>
-            <h1 class="text-xl font-display font-bold text-white mt-1">Round {{ match.round_number }}{% if is_spectator %} <span class="text-neon text-sm font-normal ml-2"><i class="fas fa-eye"></i> Spectating</span>{% endif %}</h1>
+<div class="max-w-7xl mx-auto">
+    <!-- Header with Breadcrumb -->
+    <div class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+            <div class="flex items-center gap-2 text-sm font-medium text-slate-400 mb-1">
+                <a href="{% url 'dashboard' %}" class="hover:text-brand-600 transition-colors">Dashboard</a>
+                <i class="fas fa-chevron-right text-[10px]"></i>
+                <a href="{% url 'tournament_detail' pk=match.tournament.pk %}" class="hover:text-brand-600 transition-colors">{{ match.tournament.name }}</a>
+            </div>
+            <h1 class="text-3xl font-display font-bold text-slate-900 flex items-center gap-3">
+                Round {{ match.round_number }}
+                {% if is_spectator %} 
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 text-xs font-semibold">
+                    <i class="fas fa-eye mr-1.5"></i> Spectating
+                </span>
+                {% endif %}
+            </h1>
         </div>
+        
+        <div class="flex items-center gap-4">
+            <div class="hidden sm:block text-right">
+                <div class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Match Code</div>
+                <div class="text-sm font-mono text-slate-900 bg-slate-100 px-2 py-1 rounded">#{{ match.id }}</div>
+            </div>
+            <a href="{% url 'tournament_detail' pk=match.tournament.pk %}" class="btn-secondary py-2 px-4 shadow-sm">
+                <i class="fas fa-sitemap mr-2"></i> View Bracket
+            </a>
+        </div>
+    </div>
 
-        <div class="game-wrapper">
-            <!-- Board + Players -->
-            <div class="board-column">
-                <!-- Opponent (top) -->
-                <div class="player-bar" id="player-top-bar">
-                    <div class="player-avatar avatar-black">{{ match.player2.username.0|upper|default:"?" }}</div>
-                    <div>
-                        <div class="text-white font-semibold text-sm">{{ match.player2.username|default:"TBD" }}</div>
-                        <div class="text-slate-500 text-xs">Black</div>
-                    </div>
-                </div>
-
-                <!-- Board -->
-                <div class="board-area">
-                    <div id="chessboard" style="width: 100%;"></div>
-                </div>
-
-                <!-- You (bottom) -->
-                <div class="player-bar active-turn" id="player-bottom-bar">
-                    <div class="player-avatar avatar-white">{{ match.player1.username.0|upper|default:"?" }}</div>
-                    <div>
-                        <div class="text-white font-semibold text-sm">{{ match.player1.username|default:"TBD" }}</div>
-                        <div class="text-slate-500 text-xs">White</div>
+    <div class="game-container">
+        <!-- Main Game Area -->
+        <div class="space-y-6">
+            <!-- Opponent Card -->
+            <div class="player-card shadow-sm" id="player-top-bar">
+                <div class="player-avatar avatar-black">{{ match.player2.username.0|upper|default:"?" }}</div>
+                <div class="flex-grow">
+                    <div class="flex items-center justify-between">
+                        <span class="text-slate-900 font-bold">{{ match.player2.username|default:"Waiting for opponent..." }}</span>
+                        <div class="flex items-center gap-2">
+                             <span class="text-xs font-bold text-slate-400">BLACK</span>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Right: Side panel -->
-            <div class="side-panel">
-                <!-- Status -->
-                <div class="status-bar status-waiting" id="status-bar">
-                    <i class="fas fa-spinner fa-spin mr-2"></i> Loading...
-                </div>
+            <!-- Chess Board -->
+            <div class="relative">
+                <div id="chessboard" class="w-full aspect-square max-w-[600px] mx-auto"></div>
+            </div>
 
-                <!-- Moves header -->
-                <div class="panel-header">
-                    <i class="fas fa-list-ol mr-1"></i> Move History
+            <!-- User Card -->
+            <div class="player-card active-turn shadow-sm" id="player-bottom-bar">
+                <div class="player-avatar avatar-white">{{ match.player1.username.0|upper|default:"?" }}</div>
+                <div class="flex-grow">
+                    <div class="flex items-center justify-between">
+                        <span class="text-slate-900 font-bold">{{ match.player1.username|default:"TBD" }}</span>
+                        <div class="flex items-center gap-2">
+                             <span class="text-xs font-bold text-brand-500">WHITE</span>
+                        </div>
+                    </div>
                 </div>
+            </div>
+        </div>
 
-                <!-- Move List -->
-                <div class="move-list" id="move-list">
-                    <p class="text-slate-600 text-xs text-center py-8" id="no-moves-msg">No moves yet. White to play.</p>
-                </div>
+        <!-- Sidebar Panel -->
+        <div class="card overflow-hidden h-fit sticky top-24 shadow-lg border-brand-100">
+            <!-- Game Status -->
+            <div class="status-indicator status-waiting" id="status-bar">
+                <i class="fas fa-circle-notch fa-spin mr-2"></i> Initializing...
+            </div>
 
-                <!-- Actions -->
-                <div class="panel-actions">
-                    <a href="{% url 'tournament_detail' pk=match.tournament.pk %}" class="btn-back">
-                        <i class="fas fa-arrow-left mr-1"></i> Bracket
-                    </a>
-                    {% if is_player and match.status == 'active' %}
-                    <button onclick="resignGame()" class="btn-resign" id="resign-btn">
-                        <i class="fas fa-flag mr-1"></i> Resign
-                    </button>
-                    {% endif %}
+            <!-- Move History -->
+            <div class="bg-slate-50 border-b border-slate-200 px-4 py-3 flex items-center justify-between">
+                <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Move List</span>
+                <span class="text-xs text-slate-400" id="move-count-display">0 moves</span>
+            </div>
+            
+            <div class="move-history max-h-[400px] min-h-[300px]" id="move-list">
+                <div class="flex flex-col items-center justify-center p-12 text-center" id="no-moves-msg">
+                    <div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-300 mb-3">
+                        <i class="fas fa-chess h-6 w-6"></i>
+                    </div>
+                    <p class="text-slate-500 text-sm font-medium">No moves made</p>
+                    <p class="text-slate-400 text-xs mt-1">White starts the game</p>
                 </div>
+            </div>
+
+            <!-- Footer Actions -->
+            <div class="panel-footer">
+                {% if is_player and match.status == 'active' %}
+                <button onclick="resignGame()" class="flex-1 py-2.5 rounded-lg border border-red-200 bg-red-50 text-red-700 hover:bg-red-100 transition-all font-bold text-sm shadow-sm" id="resign-btn">
+                    <i class="fas fa-flag mr-2"></i> Resign Match
+                </button>
+                {% else %}
+                <a href="{% url 'tournament_detail' pk=match.tournament.pk %}" class="flex-1 btn-secondary text-sm font-bold">
+                    <i class="fas fa-arrow-left mr-2"></i> Back to Bracket
+                </a>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -221,12 +222,12 @@
 
 <!-- Game Over Modal -->
 <div class="modal-overlay" id="game-over-modal">
-    <div class="modal-content">
-        <div id="modal-icon" class="text-6xl mb-4"></div>
-        <h2 id="modal-title" class="text-2xl font-display font-bold text-white mb-2"></h2>
-        <p id="modal-message" class="text-slate-400 mb-6"></p>
-        <a href="{% url 'tournament_detail' pk=match.tournament.pk %}" class="btn-primary">
-            <i class="fas fa-arrow-left mr-1"></i> Back to Tournament
+    <div class="modal-box">
+        <div id="modal-icon" class="text-7xl mb-6"></div>
+        <h2 id="modal-title" class="text-3xl font-display font-bold text-slate-900 mb-2"></h2>
+        <p id="modal-message" class="text-slate-500 text-lg mb-10"></p>
+        <a href="{% url 'tournament_detail' pk=match.tournament.pk %}" class="btn-primary w-full py-4 text-lg">
+            Return to Tournament
         </a>
     </div>
 </div>
@@ -309,10 +310,10 @@
                     updateStatus();
                     if (data.is_checkmate) {
                         gameOver = true;
-                        showModal('Checkmate!', data.winner + ' wins!', '<i class="fas fa-crown text-gold"></i>');
+                        showModal('Checkmate!', data.winner + ' wins!', '🏆');
                     } else if (data.is_stalemate || data.is_draw) {
                         gameOver = true;
-                        showModal('Draw!', 'Game ended in a draw.', '<i class="fas fa-handshake text-yellow-400"></i>');
+                        showModal('Draw!', 'Game ended in a draw.', '🤝');
                     }
                 } else {
                     game.undo(); board.position(game.fen());
@@ -338,7 +339,7 @@
                 updateStatus();
                 if (data.status === 'completed' && data.winner) {
                     gameOver = true;
-                    showModal('Game Over', data.winner + ' wins!', '<i class="fas fa-crown text-gold"></i>');
+                    showModal('Game Over', data.winner + ' wins!', '🏆');
                 }
             }
         });
@@ -352,12 +353,12 @@
             if (data.moves && data.moves.length > 0) rebuildMoveList(data.moves, data.player1, data.player2);
             if (data.status === 'completed' && data.winner) {
                 gameOver = true;
-                showModal('Game Over', data.winner + ' wins!', '<i class="fas fa-crown text-gold"></i>');
+                showModal('Game Over', data.winner + ' wins!', '🏆');
             }
             updateStatus();
             pollInterval = setInterval(pollGameState, 2000);
         }).fail(function() {
-            setStatus('error', 'Failed to load. Refresh the page.');
+            setStatus('error', 'Failed to load. Refreshing...');
             setTimeout(loadInitialState, 3000);
         });
     }
@@ -369,23 +370,23 @@
         if (gameOver || game.game_over()) {
             if (game.in_checkmate()) {
                 var w = game.turn() === 'w' ? 'Black' : 'White';
-                setStatus('over', '<i class="fas fa-crown mr-2"></i> Checkmate! ' + w + ' wins!');
+                setStatus('over', '🏆 Checkmate! ' + w + ' wins!');
             } else if (game.in_stalemate() || game.in_draw()) {
-                setStatus('over', '<i class="fas fa-handshake mr-2"></i> Draw!');
+                setStatus('over', '🤝 Draw!');
             }
             return;
         }
 
         if (game.in_check()) {
             var c = game.turn() === 'w' ? 'White' : 'Black';
-            setStatus('check', '<i class="fas fa-exclamation-triangle mr-2"></i> ' + c + ' is in CHECK!');
+            setStatus('check', '⚠️ ' + c + ' is in CHECK!');
         } else {
             var turn = game.turn() === 'w' ? 'White' : 'Black';
             var myTurn = (game.turn() === 'w' && PLAYER_COLOR === 'white') || (game.turn() === 'b' && PLAYER_COLOR === 'black');
             if (myTurn) {
-                setStatus('your-turn', '<i class="fas fa-chess mr-2"></i> Your turn (' + turn + ')');
+                setStatus('your-turn', '🔵 Your turn (' + turn + ')');
             } else {
-                setStatus('waiting', '<i class="fas fa-clock mr-2"></i> Waiting for ' + turn + '...');
+                setStatus('waiting', '⏳ Waiting for ' + turn + '...');
             }
         }
 
@@ -398,31 +399,40 @@
 
     function setStatus(type, html) {
         var bar = $('#status-bar');
-        bar.attr('class', 'status-bar status-' + type);
+        bar.attr('class', 'status-indicator status-' + type);
         bar.html(html);
     }
 
     function flashStatus(type, msg) {
-        setStatus(type === 'error' ? 'check' : type, '<i class="fas fa-exclamation-circle mr-2"></i> ' + msg);
+        setStatus(type === 'error' ? 'check' : type, '❌ ' + msg);
         setTimeout(updateStatus, 2500);
     }
 
     function rebuildMoveList(moves, p1, p2) {
         var list = $('#move-list');
-        list.empty();
+        var msg = $('#no-moves-msg');
+        var displayCount = $('#move-count-display');
+        
+        list.find('.move-row').remove();
+        
         if (!moves || !moves.length) {
-            list.html('<p class="text-slate-600 text-xs text-center py-8">No moves yet. White to play.</p>');
+            msg.show();
+            displayCount.text('0 moves');
             return;
         }
+        
+        msg.hide();
+        displayCount.text(moves.length + ' move' + (moves.length === 1 ? '' : 's'));
+
         for (var i = 0; i < moves.length; i += 2) {
             var num = Math.floor(i / 2) + 1;
             var row = $('<div class="move-row"></div>');
-            row.append('<span class="move-num">' + num + '.</span>');
-            var wcell = $('<span class="move-cell white-move"></span>').text(moves[i]);
+            row.append('<span class="move-num">' + num + '</span>');
+            var wcell = $('<span class="move-cell font-medium"></span>').text(moves[i]);
             if (i === moves.length - 1) wcell.addClass('latest');
             row.append(wcell);
             if (i + 1 < moves.length) {
-                var bcell = $('<span class="move-cell black-move"></span>').text(moves[i + 1]);
+                var bcell = $('<span class="move-cell font-medium"></span>').text(moves[i + 1]);
                 if (i + 1 === moves.length - 1) bcell.addClass('latest');
                 row.append(bcell);
             } else {
@@ -448,7 +458,7 @@
             headers: { 'X-CSRFToken': CSRF_TOKEN },
             success: function(data) {
                 gameOver = true;
-                showModal('Resignation', data.winner + ' wins by resignation!', '<i class="fas fa-flag text-red-400"></i>');
+                showModal('Resign Match', data.winner + ' wins by resignation!', '🏳️');
             },
             error: function() { flashStatus('error', 'Failed to resign.'); }
         });
