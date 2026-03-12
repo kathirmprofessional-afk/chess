@@ -50,13 +50,13 @@ def api_register_view(request):
         except json.JSONDecodeError:
             data = request.POST
         username = data.get('username', '')
-        email = data.get('email', '')
+        password = data.get('password', '')
         password = data.get('password', '')
 
-        if not username or not email or not password:
+        if not username or not password:
             return JsonResponse({
                 'success': False,
-                'message': 'Username, email, and password are required.'
+                'message': 'Username and password are required.'
             }, status=400)
 
         if User.objects.filter(username__iexact=username).exists():
@@ -64,13 +64,8 @@ def api_register_view(request):
                 'success': False,
                 'message': 'Username already taken.'
             }, status=400)
-        if User.objects.filter(email__iexact=email).exists():
-            return JsonResponse({
-                'success': False,
-                'message': 'Email already registered.'
-            }, status=400)
 
-        user = User.objects.create_user(username=username, email=email, password=password)
+        user = User.objects.create_user(username=username, password=password)
         login(request, user, backend='accounts.backends.EmailOrUsernameModelBackend')
         return JsonResponse({
             'success': True,
