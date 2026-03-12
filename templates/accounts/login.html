@@ -1,40 +1,92 @@
 {% extends 'base.html' %}
-{% block title %}Login - Chess Tournament{% endblock %}
+{% block title %}Sign In - Chess Tournament{% endblock %}
 
 {% block content %}
-<div class="min-h-screen flex items-center justify-center px-4">
-    <div class="w-full max-w-md animate-fadeInUp">
-        <!-- Logo -->
-        <div class="text-center mb-8">
-            <div class="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-accent to-purple-600 flex items-center justify-center animate-float">
-                <i class="fas fa-chess-king text-white text-4xl"></i>
+<div class="min-h-screen flex items-center justify-center relative overflow-hidden">
+    <!-- Background Accents -->
+    <div class="absolute top-[-10%] left-[-10%] w-96 h-96 bg-accent rounded-full mix-blend-multiply filter blur-3xl opacity-20"></div>
+    <div class="absolute top-[20%] right-[-10%] w-96 h-96 bg-purple-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20"></div>
+    <div class="absolute bottom-[-20%] left-[20%] w-96 h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20"></div>
+
+    <div class="w-full max-w-5xl bg-[#1e293b]/50 backdrop-blur-2xl rounded-3xl shadow-2xl overflow-hidden flex border border-white/10 z-10 animate-fadeInUp m-4">
+        
+        <!-- Left Side: Interactive/Visual -->
+        <div class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-[#0f172a] to-[#1e293b] p-12 flex-col justify-between relative overflow-hidden group border-r border-white/5">
+            <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1529699211952-734e80c4d42b?q=80&w=2671&auto=format&fit=crop')] bg-cover bg-center opacity-40 mix-blend-overlay transition-transform duration-700 group-hover:scale-105"></div>
+            <div class="absolute inset-0 bg-gradient-to-t from-[#0f172a] via-[#0f172a]/20 to-transparent"></div>
+            
+            <div class="relative z-10">
+                <div class="w-16 h-16 rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20 mb-6 shadow-xl">
+                    <i class="fas fa-chess-knight text-white text-3xl"></i>
+                </div>
+                <h2 class="text-4xl font-display font-bold text-white leading-tight">Master Your<br><span class="text-transparent bg-clip-text bg-gradient-to-r from-accent to-purple-400">Strategies</span></h2>
             </div>
-            <h1 class="text-3xl font-display font-bold text-white">Welcome Back</h1>
-            <p class="text-slate-400 mt-2">Sign in to your tournament account</p>
+            
+            <div class="relative z-10 glass-panel p-6 rounded-2xl border-white/10 max-w-md backdrop-blur-md bg-white/5 border border-white/10">
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-accent to-purple-500 flex items-center justify-center shadow-lg shadow-purple-500/20">
+                        <i class="fas fa-quote-left text-white/80 text-sm"></i>
+                    </div>
+                    <div>
+                        <p class="text-white font-medium">Grandmaster Insights</p>
+                        <p class="text-slate-400 text-xs text-uppercase tracking-wider">Daily Tip</p>
+                    </div>
+                </div>
+                <p class="text-slate-300 italic text-sm leading-relaxed">"Chess is the struggle against the error." — Johannes Zukertort</p>
+            </div>
         </div>
 
-        <div class="glass-card p-8">
-            <form method="post" class="space-y-5">
+        <!-- Right Side: Form -->
+        <div class="w-full lg:w-1/2 p-8 sm:p-12 md:p-16 flex flex-col justify-center bg-[#1e293b]/70">
+            <div class="mb-10 lg:hidden text-center">
+                <div class="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-accent to-purple-600 flex items-center justify-center mb-4 shadow-lg">
+                    <i class="fas fa-chess-king text-white text-3xl"></i>
+                </div>
+                <h1 class="text-3xl font-display font-bold text-white">Welcome Back</h1>
+            </div>
+            
+            <div class="hidden lg:block mb-8">
+                <h1 class="text-3xl font-display font-bold text-white mb-2">Welcome Back</h1>
+                <p class="text-slate-400">Sign in to your account using your email.</p>
+            </div>
+
+            <form method="post" class="space-y-6">
                 {% csrf_token %}
-
-                <div>
-                    <label class="block text-sm font-medium text-slate-300 mb-2">Username</label>
-                    <input type="text" name="username" required class="form-input" placeholder="Enter your username">
+                
+                <div class="group">
+                    <label class="block text-sm font-medium text-slate-300 mb-2 transition-colors group-focus-within:text-accent-light">Email Address</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <i class="fas fa-envelope text-slate-500 group-focus-within:text-accent-light transition-colors"></i>
+                        </div>
+                        <input type="email" name="username" required class="form-input w-full pl-11 py-3.5 bg-[#0f172a]/50 border-slate-700/50 focus:bg-[#0f172a] focus:border-accent-light/50 transition-all shadow-inner rounded-xl text-white outline-none ring-0" placeholder="player@example.com">
+                    </div>
                 </div>
 
-                <div>
-                    <label class="block text-sm font-medium text-slate-300 mb-2">Password</label>
-                    <input type="password" name="password" required class="form-input" placeholder="Enter your password">
+                <div class="group">
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="block text-sm font-medium text-slate-300 transition-colors group-focus-within:text-accent-light">Password</label>
+                    </div>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <i class="fas fa-lock text-slate-500 group-focus-within:text-accent-light transition-colors"></i>
+                        </div>
+                        <input type="password" name="password" required class="form-input w-full pl-11 py-3.5 bg-[#0f172a]/50 border-slate-700/50 focus:bg-[#0f172a] focus:border-accent-light/50 transition-all shadow-inner rounded-xl text-white outline-none ring-0" placeholder="••••••••">
+                    </div>
                 </div>
 
-                <button type="submit" class="btn-primary w-full justify-center text-lg py-3">
-                    <i class="fas fa-sign-in-alt"></i> Sign In
+                <button type="submit" class="w-full relative group overflow-hidden rounded-xl bg-gradient-to-r from-accent to-blue-600 text-white font-semibold py-3.5 transition-all outline-none mt-2 shadow-lg shadow-accent/20 hover:shadow-accent/40 hover:-translate-y-0.5">
+                    <div class="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                    <span class="relative flex items-center justify-center gap-2">
+                        <span>Sign In</span>
+                        <i class="fas fa-arrow-right text-sm group-hover:translate-x-1 transition-transform"></i>
+                    </span>
                 </button>
             </form>
 
-            <p class="text-center text-slate-400 mt-6 text-sm">
-                Don't have an account?
-                <a href="{% url 'register' %}" class="text-accent-light hover:text-white transition font-medium">Create one</a>
+            <p class="text-center text-slate-400 mt-8 text-sm">
+                New to the arena? 
+                <a href="{% url 'register' %}" class="text-accent hover:text-accent-light transition-colors font-semibold mx-1 border-b border-accent/30 hover:border-accent-light pb-0.5">Create an account</a>
             </p>
         </div>
     </div>
