@@ -144,7 +144,7 @@ STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # WhiteNoise configuration
-WHITENOISE_INDEX_FILE = True  # Don't serve index.html as directory index
+WHITENOISE_INDEX_FILE = False  # Ensure Django handles the root URL, not WhiteNoise static files
 STORAGES = {
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
